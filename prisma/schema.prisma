@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProductStatus {
+  visible
+  hidden
+  outOfStock
+}
+
+enum OrderStatus {
+  new
+  contacted
+  completed
+  cancelled
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  nameAr        String
+  nameEn        String
+  descriptionAr String    @db.Text
+  descriptionEn String    @db.Text
+  imageUrl      String?
+  isVisible     Boolean   @default(true)
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  products      Product[]
+}
+
+model Product {
+  id                 String          @id @default(cuid())
+  categoryId         String
+  slug               String          @unique
+  internalCode       String
+  nameAr             String
+  nameEn             String
+  descriptionAr      String          @db.Text
+  descriptionEn      String          @db.Text
+  shortDescriptionAr String
+  shortDescriptionEn String
+  price              Int
+  currency           String          @default("SYP")
+  status             ProductStatus   @default(visible)
+  isFeatured         Boolean         @default(false)
+  mainImageId        String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  category           Category        @relation(fields: [categoryId], references: [id])
+  images             ProductImage[]
+  colors             ProductColor[]
+  variants           ProductVariant[]
+  orderItems         OrderItem[]
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  colorId   String?
+  url       String
+  altAr     String
+  altEn     String
+  isMain    Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductColor {
+  id          String           @id @default(cuid())
+  productId   String
+  nameAr      String
+  nameEn      String
+  hex         String
+  imageUrl    String?
+  isAvailable Boolean          @default(true)
+  sortOrder   Int              @default(0)
+  product     Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variants    ProductVariant[]
+}
+
+model ProductVariant {
+  id          String       @id @default(cuid())
+  productId   String
+  colorId     String
+  size        String
+  isAvailable Boolean      @default(true)
+  stock       Int?
+  createdAt   DateTime     @default(now())
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color       ProductColor @relation(fields: [colorId], references: [id], onDelete: Cascade)
+
+  @@unique([colorId, size])
+}
+
+model Order {
+  id               String      @id @default(cuid())
+  code             String      @unique
+  locale           String
+  customerName     String
+  customerPhone    String
+  cityArea         String
+  detailedAddress  String      @db.Text
+  notes            String?     @db.Text
+  subtotal         Int
+  total            Int
+  currency         String      @default("SYP")
+  status           OrderStatus @default(new)
+  whatsappOpenedAt DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  items            OrderItem[]
+}
+
+model OrderItem {
+  id                  String   @id @default(cuid())
+  orderId             String
+  productId           String?
+  productSlug         String
+  productInternalCode String
+  productNameAr       String
+  productNameEn       String
+  selectedProductName String
+  colorAr             String
+  colorEn             String
+  selectedColorName   String
+  colorHex            String
+  size                String
+  quantity            Int
+  unitPrice           Int
+  lineTotal           Int
+  currency            String
+  imageUrl            String?
+  createdAt           DateTime @default(now())
+  order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product             Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+}
+
+model StoreSettings {
+  id                 String   @id @default(cuid())
+  storeNameAr        String
+  storeNameEn        String
+  whatsappNumber     String
+  supportPhone       String?
+  supportEmail       String
+  defaultCurrency    String   @default("SYP")
+  facebookUrl        String?
+  whatsappUrl        String?
+  instagramUrl       String?
+  aboutAr            String   @db.Text
+  aboutEn            String   @db.Text
+  locationAr         String
+  locationEn         String
+  whatsappTemplateAr String?  @db.Text
+  whatsappTemplateEn String?  @db.Text
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}

@@ -1,0 +1,186 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - link "White House home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]:
+          - generic [ref=e7]: WH
+          - generic [ref=e8]: White House
+      - navigation [ref=e9]:
+        - link "الرئيسية" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "الأقسام" [ref=e11] [cursor=pointer]:
+          - /url: /#categories
+        - link "المنتجات" [ref=e12] [cursor=pointer]:
+          - /url: /products
+        - link "عن المتجر" [ref=e13] [cursor=pointer]:
+          - /url: /#about
+      - link "English" [ref=e15] [cursor=pointer]:
+        - /url: /en
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - generic [ref=e18]:
+        - paragraph [ref=e19]: أزياء رجالية مختارة
+        - heading "وايت هاوس" [level=1] [ref=e20]:
+          - generic [ref=e21]: وايت
+          - generic [ref=e22]: هاوس
+        - paragraph [ref=e23]: "قطع يومية بهوية هادئة: صور واضحة، ألوان دقيقة، وطلب سريع عبر واتساب."
+        - generic [ref=e24]:
+          - link "تسوق المجموعة" [ref=e25] [cursor=pointer]:
+            - /url: /products
+          - link "استكشف الأقسام" [ref=e26] [cursor=pointer]:
+            - /url: /#categories
+      - img "White House editorial menswear" [ref=e28]
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - heading "الأقسام" [level=2] [ref=e32]
+        - link "عرض الكل ↖" [ref=e33] [cursor=pointer]:
+          - /url: /products
+      - generic [ref=e34]:
+        - link "تي شيرت عرض القسم تي شيرت" [ref=e35] [cursor=pointer]:
+          - /url: /products?category=t-shirts
+          - img "تي شيرت" [ref=e36]
+          - generic [ref=e38]:
+            - paragraph [ref=e39]: عرض القسم
+            - heading "تي شيرت" [level=3] [ref=e40]
+        - link "هوديز عرض القسم هوديز" [ref=e41] [cursor=pointer]:
+          - /url: /products?category=hoodies
+          - img "هوديز" [ref=e42]
+          - generic [ref=e44]:
+            - paragraph [ref=e45]: عرض القسم
+            - heading "هوديز" [level=3] [ref=e46]
+        - link "جاكيت عرض القسم جاكيت" [ref=e47] [cursor=pointer]:
+          - /url: /products?category=jackets
+          - img "جاكيت" [ref=e48]
+          - generic [ref=e50]:
+            - paragraph [ref=e51]: عرض القسم
+            - heading "جاكيت" [level=3] [ref=e52]
+    - generic [ref=e53]:
+      - generic [ref=e54]:
+        - heading "مختارات من كل قسم" [level=2] [ref=e55]:
+          - generic [ref=e56]: مختارات
+          - generic [ref=e57]: من كل قسم
+        - paragraph [ref=e58]: منتج مختار من القسم، افتح القسم لرؤية المزيد.
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - article [ref=e61]:
+            - link "تي شيرت ستون بقصة مريحة ستون فحمي تي شيرت ستون بقصة مريحة قطن متوسط الوزن بقصة مريحة. ١٨٥٬٠٠٠ SYP +" [ref=e62] [cursor=pointer]:
+              - /url: /products/stone-relaxed-tee
+              - generic [ref=e63]:
+                - img "تي شيرت ستون بقصة مريحة" [ref=e64]
+                - generic [ref=e65]:
+                  - generic "ستون" [ref=e66]
+                  - generic "فحمي" [ref=e67]
+              - generic [ref=e68]:
+                - generic [ref=e69]:
+                  - heading "تي شيرت ستون بقصة مريحة" [level=3] [ref=e70]
+                  - paragraph [ref=e71]: قطن متوسط الوزن بقصة مريحة.
+                  - paragraph [ref=e72]: ١٨٥٬٠٠٠ SYP
+                - generic [ref=e73]: +
+          - link "تي شيرت ↖" [ref=e74] [cursor=pointer]:
+            - /url: /products?category=t-shirts
+        - generic [ref=e75]:
+          - article [ref=e76]:
+            - link "هودي كريمي ثقيل كريمي هودي كريمي ثقيل هودي ناعم بلون كريمي فاخر. ٣١٥٬٠٠٠ SYP +" [ref=e77] [cursor=pointer]:
+              - /url: /products/cream-weight-hoodie
+              - generic [ref=e78]:
+                - img "هودي كريمي ثقيل" [ref=e79]
+                - generic "كريمي" [ref=e81]
+              - generic [ref=e82]:
+                - generic [ref=e83]:
+                  - heading "هودي كريمي ثقيل" [level=3] [ref=e84]
+                  - paragraph [ref=e85]: هودي ناعم بلون كريمي فاخر.
+                  - paragraph [ref=e86]: ٣١٥٬٠٠٠ SYP
+                - generic [ref=e87]: +
+          - link "هوديز ↖" [ref=e88] [cursor=pointer]:
+            - /url: /products?category=hoodies
+        - generic [ref=e89]:
+          - article [ref=e90]:
+            - link "جاكيت إنك خفيف أزرق داكن جاكيت إنك خفيف جاكيت خفيف بتفاصيل مدينة. ٤٢٠٬٠٠٠ SYP +" [ref=e91] [cursor=pointer]:
+              - /url: /products/ink-light-jacket
+              - generic [ref=e92]:
+                - img "جاكيت إنك خفيف" [ref=e93]
+                - generic "أزرق داكن" [ref=e95]
+              - generic [ref=e96]:
+                - generic [ref=e97]:
+                  - heading "جاكيت إنك خفيف" [level=3] [ref=e98]
+                  - paragraph [ref=e99]: جاكيت خفيف بتفاصيل مدينة.
+                  - paragraph [ref=e100]: ٤٢٠٬٠٠٠ SYP
+                - generic [ref=e101]: +
+          - link "جاكيت ↖" [ref=e102] [cursor=pointer]:
+            - /url: /products?category=jackets
+    - generic [ref=e103]:
+      - heading "عن المتجر" [level=2] [ref=e104]
+      - generic [ref=e105]:
+        - paragraph [ref=e106]: وايت هاوس يقدم أساسيات رجالية يومية بقصات نظيفة، ألوان هادئة، وخامات تناسب حياة المدينة.
+        - paragraph [ref=e107]: دمشق، سوريا. التوصيل والتفاصيل النهائية عبر واتساب.
+  - contentinfo [ref=e108]:
+    - generic [ref=e110]:
+      - generic [ref=e111]:
+        - generic [ref=e112]: White House Store
+        - generic [ref=e113]: White House Store
+        - generic [ref=e114]: White House Store
+        - generic [ref=e115]: White House Store
+        - generic [ref=e116]: White House Store
+        - generic [ref=e117]: White House Store
+        - generic [ref=e118]: White House Store
+        - generic [ref=e119]: White House Store
+        - generic [ref=e120]: White House Store
+        - generic [ref=e121]: White House Store
+        - generic [ref=e122]: White House Store
+        - generic [ref=e123]: White House Store
+      - generic [ref=e124]:
+        - generic [ref=e125]: White House Store
+        - generic [ref=e126]: White House Store
+        - generic [ref=e127]: White House Store
+        - generic [ref=e128]: White House Store
+        - generic [ref=e129]: White House Store
+        - generic [ref=e130]: White House Store
+        - generic [ref=e131]: White House Store
+        - generic [ref=e132]: White House Store
+        - generic [ref=e133]: White House Store
+        - generic [ref=e134]: White House Store
+        - generic [ref=e135]: White House Store
+        - generic [ref=e136]: White House Store
+    - generic [ref=e137]:
+      - generic [ref=e138]:
+        - generic [ref=e139]:
+          - generic [ref=e140]: WH
+          - generic [ref=e141]: White House
+        - paragraph [ref=e142]: وايت هاوس يقدم أساسيات رجالية يومية بقصات نظيفة، ألوان هادئة، وخامات تناسب حياة المدينة.
+        - paragraph [ref=e143]: دمشق، سوريا. التوصيل والتفاصيل النهائية عبر واتساب.
+      - generic [ref=e144]:
+        - generic [ref=e145]:
+          - heading "روابط مفيدة" [level=3] [ref=e146]
+          - generic [ref=e147]:
+            - link "الرئيسية" [ref=e148] [cursor=pointer]:
+              - /url: /
+            - link "الأقسام" [ref=e149] [cursor=pointer]:
+              - /url: /#categories
+            - link "المنتجات" [ref=e150] [cursor=pointer]:
+              - /url: /products
+            - link "عن المتجر" [ref=e151] [cursor=pointer]:
+              - /url: /#about
+        - generic [ref=e152]:
+          - heading "الأقسام" [level=3] [ref=e153]
+          - generic [ref=e154]:
+            - link "تي شيرت" [ref=e155] [cursor=pointer]:
+              - /url: /products?category=t-shirts
+            - link "هوديز" [ref=e156] [cursor=pointer]:
+              - /url: /products?category=hoodies
+            - link "جاكيت" [ref=e157] [cursor=pointer]:
+              - /url: /products?category=jackets
+        - generic [ref=e158]:
+          - heading "تواصل معنا" [level=3] [ref=e159]
+          - generic [ref=e160]:
+            - link "support@whitehouse.example" [ref=e161] [cursor=pointer]:
+              - /url: mailto:support@whitehouse.example
+            - link "WhatsApp" [ref=e162] [cursor=pointer]:
+              - /url: https://wa.me/963900000000
+            - link "963900000000" [ref=e163] [cursor=pointer]:
+              - /url: tel:963900000000
+            - link "Facebook" [ref=e164] [cursor=pointer]:
+              - /url: https://facebook.com
+            - link "Instagram" [ref=e165] [cursor=pointer]:
+              - /url: https://instagram.com
+    - generic [ref=e166]: White House Store
