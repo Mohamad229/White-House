@@ -68,7 +68,7 @@ export function HomePage({
     <div className="page-shell" dir={t.dir} lang={locale}>
       <Header locale={locale} />
       <main>
-        <section id="hero" className="relative overflow-hidden bg-bone/70">
+        <section id="home" className="relative overflow-hidden bg-bone/70">
           <div
             dir="ltr"
             className="mx-auto grid max-w-[1720px] grid-cols-1 lg:h-[calc(100vh-86px)] lg:min-h-[620px] lg:max-h-[760px] lg:grid-cols-2"

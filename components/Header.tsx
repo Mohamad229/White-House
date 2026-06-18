@@ -23,7 +23,7 @@ export function Header({ locale }: { locale: Locale }) {
   const t = dictionary[locale];
   const switchHref = switchLocaleHref(locale, pathname);
   const links = [
-    { href: localPath(locale, "/"), label: t.home },
+    { href: localPath(locale, "/#home"), label: t.home },
     { href: localPath(locale, "/#categories"), label: t.categories },
     { href: localPath(locale, "/products"), label: t.products },
     { href: localPath(locale, "/#about"), label: t.about },

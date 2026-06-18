@@ -1432,14 +1432,40 @@ img {
   padding-block: clamp(2.25rem, 4.6vw, 4.8rem);
 }
 
+.wh-products-main.container-shell {
+  width: min(1440px, calc(100% - clamp(24px, 4vw, 56px)));
+}
+
 .wh-products-heading {
   gap: 0.75rem;
+  justify-items: center;
   padding-block: clamp(0.5rem, 2vw, 1.55rem);
+  text-align: center;
 }
 
 .wh-products-heading .wh-section-title {
   font-size: clamp(3.25rem, 7vw, 7rem);
   line-height: 0.84;
+}
+
+.wh-products-heading p {
+  margin-inline: auto;
+}
+
+.wh-products-filter-frame {
+  max-width: min(100%, 1280px);
+}
+
+.wh-products-filter-card {
+  overflow: hidden;
+}
+
+.wh-products-category-tabs {
+  scrollbar-width: none;
+}
+
+.wh-products-category-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .wh-products-filter-panel {
@@ -1554,19 +1580,49 @@ img {
 }
 
 .wh-products-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(285px, 100%), 380px));
-  justify-content: center;
-  gap: clamp(1rem, 1.4vw, 1.35rem);
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  justify-content: stretch;
+  gap: clamp(0.9rem, 1.15vw, 1.25rem);
+}
+
+@media (max-width: 1099px) {
+  .wh-products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 899px) {
+  .wh-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 767px) {
+  .wh-products-main.container-shell {
+    width: min(100% - 24px, 390px);
+  }
+
   .wh-products-main {
-    gap: 1.5rem;
-    padding-block: 2rem 3rem;
+    gap: 1.4rem;
+    padding-block: 1.7rem 3rem;
   }
 
   .wh-products-heading .wh-section-title {
-    font-size: clamp(3rem, 15vw, 5.2rem);
+    font-size: clamp(2.7rem, 13vw, 3.65rem);
+    letter-spacing: -0.045em;
+    line-height: 0.9;
+  }
+
+  .wh-products-heading p {
+    max-width: 22rem;
+    font-size: 0.93rem;
+    line-height: 1.8;
+  }
+
+  .wh-products-filter-frame {
+    max-width: 100%;
   }
 
   .wh-products-filter-panel {
@@ -1574,6 +1630,31 @@ img {
     border-radius: 24px;
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .wh-products-filter-card {
+    border-radius: 24px;
+  }
+
+  .wh-products-category-tabs {
+    margin-inline: -0.25rem;
+    padding-inline: 0.25rem;
+    scroll-padding-inline: 0.25rem;
+  }
+
+  .wh-products-category-tabs > button {
+    white-space: nowrap;
+  }
+
+  .wh-products-grid {
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .wh-product-card {
+    width: 100%;
+    max-width: 100%;
   }
 
   .wh-filter-tabs {

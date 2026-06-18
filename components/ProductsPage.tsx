@@ -79,11 +79,11 @@ export function ProductsPage({
         </section>
 
         <section
-          className="mx-auto mt-8 w-full max-w-[1180px] sm:mt-10"
+          className="wh-products-filter-frame mx-auto mt-8 w-full sm:mt-10"
           aria-label={t.filters}
         >
           <div
-            className="rounded-[26px] border border-[#e2d8c6] bg-paper/95 p-3 shadow-[0_18px_60px_rgba(23,22,60,0.07)] backdrop-blur sm:rounded-[999px] sm:p-2"
+            className="wh-products-filter-card rounded-[26px] border border-[#e2d8c6] bg-paper/95 p-3 shadow-[0_18px_60px_rgba(23,22,60,0.07)] backdrop-blur sm:rounded-[999px] sm:p-2"
             dir={isRtl ? "rtl" : "ltr"}
           >
             <div className="mb-3 flex items-center justify-between gap-3 px-2 sm:hidden">
@@ -102,7 +102,7 @@ export function ProductsPage({
               </span>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:justify-center sm:overflow-visible sm:pb-0">
+            <div className="wh-products-category-tabs flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:justify-center sm:overflow-visible sm:pb-0">
               <button
                 type="button"
                 onClick={() => setCategorySlug("all")}
