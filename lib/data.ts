@@ -38,6 +38,8 @@ function publicReadError(error: unknown, fallback: unknown) {
 }
 
 export async function getStoreSettings(): Promise<StoreSettingsView> {
+  if (canUseSeedFallback()) return seedSettings;
+
   try {
     const settings = await prisma.storeSettings.findFirst({
       orderBy: { createdAt: "asc" },
@@ -56,6 +58,12 @@ export async function getAdminStoreSettings(): Promise<StoreSettingsView> {
 }
 
 export async function getVisibleCategories(): Promise<CategoryView[]> {
+  if (canUseSeedFallback()) {
+    return seedCategories
+      .filter((category) => category.isVisible)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
   try {
     return await prisma.category.findMany({
       where: { isVisible: true },
@@ -86,6 +94,14 @@ export async function getAdminCategory(id: string): Promise<CategoryView | null>
 export async function getPublicProducts(
   categorySlug?: string,
 ): Promise<ProductView[]> {
+  if (canUseSeedFallback()) {
+    return seedProducts.filter((product) => {
+      const categoryMatch =
+        !categorySlug || product.category?.slug === categorySlug;
+      return product.status !== "hidden" && categoryMatch;
+    });
+  }
+
   try {
     const products = await prisma.product.findMany({
       where: {
@@ -143,6 +159,14 @@ export async function getRepresentativeProductsByCategory(): Promise<
 export async function getProductBySlug(
   slug: string,
 ): Promise<ProductView | null> {
+  if (canUseSeedFallback()) {
+    return (
+      seedProducts.find(
+        (product) => product.slug === slug && product.status !== "hidden",
+      ) ?? null
+    );
+  }
+
   try {
     const product = await prisma.product.findFirst({
       where: { slug, status: { in: publicProductStatuses } },

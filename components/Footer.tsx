@@ -178,7 +178,7 @@ export function Footer({
       <section className="border-t border-paper/5 bg-ink px-5 py-12 sm:px-8 lg:py-14">
         <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.12fr_0.75fr_1.18fr] lg:gap-24">
           <div className="wh-footer-brand max-w-md">
-            <BrandMark inverse />
+            <BrandMark inverse titleVariant="admin" />
             <p className="mt-5 max-w-sm text-sm leading-7 text-paper/78 sm:text-[0.98rem]">
               {aboutText}
             </p>
