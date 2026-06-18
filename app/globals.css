@@ -1601,9 +1601,9 @@ img {
 
 @media (max-width: 767px) {
   .wh-products-main.container-shell {
-    width: min(calc(100% - 24px), 390px);
-    max-width: 390px;
-    overflow: clip;
+    width: min(calc(100% - 24px), 430px);
+    max-width: 430px;
+    overflow: hidden;
   }
 
   .wh-products-main {
@@ -1655,41 +1655,60 @@ img {
   .wh-products-filter-card {
     width: 100%;
     max-width: 100%;
-    border-radius: 24px;
+    border-radius: 22px;
     overflow: hidden;
+    padding: 0.95rem;
   }
 
   .wh-products-category-tabs {
+    display: grid !important;
     width: 100%;
     max-width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
     margin-inline: 0;
     padding-inline: 0;
-    scroll-padding-inline: 0;
-    overscroll-behavior-inline: contain;
+    overflow: visible;
   }
 
   .wh-products-category-tabs > button {
-    max-width: calc(100vw - 4.75rem);
-    white-space: nowrap;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    min-height: 3rem;
+    padding: 0.72rem 0.65rem;
+    white-space: normal;
+    text-align: center;
+    font-size: 0.62rem;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
   }
 
   .wh-products-grid {
     grid-template-columns: minmax(0, 1fr);
     justify-content: center;
-    gap: 1rem;
+    gap: 1.15rem;
   }
 
   .wh-product-card {
     width: 100%;
     max-width: 100%;
+    border-radius: 18px;
   }
 
   .wh-product-image {
-    aspect-ratio: 0.78;
+    aspect-ratio: 0.82;
+    background: linear-gradient(180deg, rgb(var(--stonewash)), rgb(var(--paper)));
   }
 
   .wh-product-image img {
-    object-position: center top;
+    object-fit: contain;
+    object-position: center center;
+    padding: 0.35rem;
+  }
+
+  .wh-product-card:hover .wh-product-image img {
+    transform: none;
   }
 
   .wh-filter-tabs {
