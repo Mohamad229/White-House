@@ -1,188 +1,207 @@
--- CreateTable
-CREATE TABLE `AdminUser` (
-    `id` VARCHAR(191) NOT NULL,
-    `username` VARCHAR(191) NOT NULL,
-    `passwordHash` VARCHAR(191) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
 
-    UNIQUE INDEX `AdminUser_username_key`(`username`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- CreateEnum
+CREATE TYPE "ProductStatus" AS ENUM ('visible', 'hidden', 'outOfStock');
+
+-- CreateEnum
+CREATE TYPE "OrderStatus" AS ENUM ('new', 'contacted', 'completed', 'cancelled');
 
 -- CreateTable
-CREATE TABLE `Category` (
-    `id` VARCHAR(191) NOT NULL,
-    `slug` VARCHAR(191) NOT NULL,
-    `nameAr` VARCHAR(191) NOT NULL,
-    `nameEn` VARCHAR(191) NOT NULL,
-    `descriptionAr` TEXT NOT NULL,
-    `descriptionEn` TEXT NOT NULL,
-    `imageUrl` VARCHAR(191) NULL,
-    `isVisible` BOOLEAN NOT NULL DEFAULT true,
-    `sortOrder` INTEGER NOT NULL DEFAULT 0,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+CREATE TABLE "AdminUser" (
+    "id" TEXT NOT NULL,
+    "username" TEXT NOT NULL,
+    "passwordHash" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    UNIQUE INDEX `Category_slug_key`(`slug`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CONSTRAINT "AdminUser_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
-CREATE TABLE `Product` (
-    `id` VARCHAR(191) NOT NULL,
-    `categoryId` VARCHAR(191) NOT NULL,
-    `slug` VARCHAR(191) NOT NULL,
-    `internalCode` VARCHAR(191) NOT NULL,
-    `nameAr` VARCHAR(191) NOT NULL,
-    `nameEn` VARCHAR(191) NOT NULL,
-    `descriptionAr` TEXT NOT NULL,
-    `descriptionEn` TEXT NOT NULL,
-    `shortDescriptionAr` VARCHAR(191) NOT NULL,
-    `shortDescriptionEn` VARCHAR(191) NOT NULL,
-    `price` INTEGER NOT NULL,
-    `currency` VARCHAR(191) NOT NULL DEFAULT 'SYP',
-    `status` ENUM('visible', 'hidden', 'outOfStock') NOT NULL DEFAULT 'visible',
-    `isFeatured` BOOLEAN NOT NULL DEFAULT false,
-    `mainImageId` VARCHAR(191) NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+CREATE TABLE "Category" (
+    "id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "nameAr" TEXT NOT NULL,
+    "nameEn" TEXT NOT NULL,
+    "descriptionAr" TEXT NOT NULL,
+    "descriptionEn" TEXT NOT NULL,
+    "imageUrl" TEXT,
+    "isVisible" BOOLEAN NOT NULL DEFAULT true,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    UNIQUE INDEX `Product_slug_key`(`slug`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
-CREATE TABLE `ProductImage` (
-    `id` VARCHAR(191) NOT NULL,
-    `productId` VARCHAR(191) NOT NULL,
-    `colorId` VARCHAR(191) NULL,
-    `url` VARCHAR(191) NOT NULL,
-    `altAr` VARCHAR(191) NOT NULL,
-    `altEn` VARCHAR(191) NOT NULL,
-    `isMain` BOOLEAN NOT NULL DEFAULT false,
-    `sortOrder` INTEGER NOT NULL DEFAULT 0,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+CREATE TABLE "Product" (
+    "id" TEXT NOT NULL,
+    "categoryId" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "internalCode" TEXT NOT NULL,
+    "nameAr" TEXT NOT NULL,
+    "nameEn" TEXT NOT NULL,
+    "descriptionAr" TEXT NOT NULL,
+    "descriptionEn" TEXT NOT NULL,
+    "shortDescriptionAr" TEXT NOT NULL,
+    "shortDescriptionEn" TEXT NOT NULL,
+    "price" INTEGER NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'SYP',
+    "status" "ProductStatus" NOT NULL DEFAULT 'visible',
+    "isFeatured" BOOLEAN NOT NULL DEFAULT false,
+    "mainImageId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `ProductColor` (
-    `id` VARCHAR(191) NOT NULL,
-    `productId` VARCHAR(191) NOT NULL,
-    `nameAr` VARCHAR(191) NOT NULL,
-    `nameEn` VARCHAR(191) NOT NULL,
-    `hex` VARCHAR(191) NOT NULL,
-    `imageUrl` VARCHAR(191) NULL,
-    `isAvailable` BOOLEAN NOT NULL DEFAULT true,
-    `sortOrder` INTEGER NOT NULL DEFAULT 0,
-
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
-CREATE TABLE `ProductVariant` (
-    `id` VARCHAR(191) NOT NULL,
-    `productId` VARCHAR(191) NOT NULL,
-    `colorId` VARCHAR(191) NOT NULL,
-    `size` VARCHAR(191) NOT NULL,
-    `isAvailable` BOOLEAN NOT NULL DEFAULT true,
-    `stock` INTEGER NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+CREATE TABLE "ProductImage" (
+    "id" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "colorId" TEXT,
+    "url" TEXT NOT NULL,
+    "altAr" TEXT NOT NULL,
+    "altEn" TEXT NOT NULL,
+    "isMain" BOOLEAN NOT NULL DEFAULT false,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    UNIQUE INDEX `ProductVariant_colorId_size_key`(`colorId`, `size`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Order` (
-    `id` VARCHAR(191) NOT NULL,
-    `code` VARCHAR(191) NOT NULL,
-    `locale` VARCHAR(191) NOT NULL,
-    `customerName` VARCHAR(191) NOT NULL,
-    `customerPhone` VARCHAR(191) NOT NULL,
-    `cityArea` VARCHAR(191) NOT NULL,
-    `detailedAddress` TEXT NOT NULL,
-    `notes` TEXT NULL,
-    `subtotal` INTEGER NOT NULL,
-    `total` INTEGER NOT NULL,
-    `currency` VARCHAR(191) NOT NULL DEFAULT 'SYP',
-    `status` ENUM('new', 'contacted', 'completed', 'cancelled') NOT NULL DEFAULT 'new',
-    `whatsappOpenedAt` DATETIME(3) NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
-
-    UNIQUE INDEX `Order_code_key`(`code`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CONSTRAINT "ProductImage_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
-CREATE TABLE `OrderItem` (
-    `id` VARCHAR(191) NOT NULL,
-    `orderId` VARCHAR(191) NOT NULL,
-    `productId` VARCHAR(191) NULL,
-    `productSlug` VARCHAR(191) NOT NULL,
-    `productInternalCode` VARCHAR(191) NOT NULL,
-    `productNameAr` VARCHAR(191) NOT NULL,
-    `productNameEn` VARCHAR(191) NOT NULL,
-    `selectedProductName` VARCHAR(191) NOT NULL,
-    `colorAr` VARCHAR(191) NOT NULL,
-    `colorEn` VARCHAR(191) NOT NULL,
-    `selectedColorName` VARCHAR(191) NOT NULL,
-    `colorHex` VARCHAR(191) NOT NULL,
-    `size` VARCHAR(191) NOT NULL,
-    `quantity` INTEGER NOT NULL,
-    `unitPrice` INTEGER NOT NULL,
-    `lineTotal` INTEGER NOT NULL,
-    `currency` VARCHAR(191) NOT NULL,
-    `imageUrl` VARCHAR(191) NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+CREATE TABLE "ProductColor" (
+    "id" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "nameAr" TEXT NOT NULL,
+    "nameEn" TEXT NOT NULL,
+    "hex" TEXT NOT NULL,
+    "imageUrl" TEXT,
+    "isAvailable" BOOLEAN NOT NULL DEFAULT true,
+    "sortOrder" INTEGER NOT NULL DEFAULT 0,
 
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CONSTRAINT "ProductColor_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
-CREATE TABLE `StoreSettings` (
-    `id` VARCHAR(191) NOT NULL,
-    `storeNameAr` VARCHAR(191) NOT NULL,
-    `storeNameEn` VARCHAR(191) NOT NULL,
-    `whatsappNumber` VARCHAR(191) NOT NULL,
-    `supportPhone` VARCHAR(191) NULL,
-    `supportEmail` VARCHAR(191) NOT NULL,
-    `defaultCurrency` VARCHAR(191) NOT NULL DEFAULT 'SYP',
-    `facebookUrl` VARCHAR(191) NULL,
-    `whatsappUrl` VARCHAR(191) NULL,
-    `instagramUrl` VARCHAR(191) NULL,
-    `aboutAr` TEXT NOT NULL,
-    `aboutEn` TEXT NOT NULL,
-    `locationAr` VARCHAR(191) NOT NULL,
-    `locationEn` VARCHAR(191) NOT NULL,
-    `whatsappTemplateAr` TEXT NULL,
-    `whatsappTemplateEn` TEXT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+CREATE TABLE "ProductVariant" (
+    "id" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "colorId" TEXT NOT NULL,
+    "size" TEXT NOT NULL,
+    "isAvailable" BOOLEAN NOT NULL DEFAULT true,
+    "stock" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CONSTRAINT "ProductVariant_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Order" (
+    "id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "locale" TEXT NOT NULL,
+    "customerName" TEXT NOT NULL,
+    "customerPhone" TEXT NOT NULL,
+    "cityArea" TEXT NOT NULL,
+    "detailedAddress" TEXT NOT NULL,
+    "notes" TEXT,
+    "subtotal" INTEGER NOT NULL,
+    "total" INTEGER NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'SYP',
+    "status" "OrderStatus" NOT NULL DEFAULT 'new',
+    "whatsappOpenedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "OrderItem" (
+    "id" TEXT NOT NULL,
+    "orderId" TEXT NOT NULL,
+    "productId" TEXT,
+    "productSlug" TEXT NOT NULL,
+    "productInternalCode" TEXT NOT NULL,
+    "productNameAr" TEXT NOT NULL,
+    "productNameEn" TEXT NOT NULL,
+    "selectedProductName" TEXT NOT NULL,
+    "colorAr" TEXT NOT NULL,
+    "colorEn" TEXT NOT NULL,
+    "selectedColorName" TEXT NOT NULL,
+    "colorHex" TEXT NOT NULL,
+    "size" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "unitPrice" INTEGER NOT NULL,
+    "lineTotal" INTEGER NOT NULL,
+    "currency" TEXT NOT NULL,
+    "imageUrl" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "StoreSettings" (
+    "id" TEXT NOT NULL,
+    "storeNameAr" TEXT NOT NULL,
+    "storeNameEn" TEXT NOT NULL,
+    "whatsappNumber" TEXT NOT NULL,
+    "supportPhone" TEXT,
+    "supportEmail" TEXT NOT NULL,
+    "defaultCurrency" TEXT NOT NULL DEFAULT 'SYP',
+    "facebookUrl" TEXT,
+    "whatsappUrl" TEXT,
+    "instagramUrl" TEXT,
+    "aboutAr" TEXT NOT NULL,
+    "aboutEn" TEXT NOT NULL,
+    "locationAr" TEXT NOT NULL,
+    "locationEn" TEXT NOT NULL,
+    "whatsappTemplateAr" TEXT,
+    "whatsappTemplateEn" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "StoreSettings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AdminUser_username_key" ON "AdminUser"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Product_slug_key" ON "Product"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ProductVariant_colorId_size_key" ON "ProductVariant"("colorId", "size");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Order_code_key" ON "Order"("code");
 
 -- AddForeignKey
-ALTER TABLE `Product` ADD CONSTRAINT `Product_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Category`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Product" ADD CONSTRAINT "Product_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ProductImage` ADD CONSTRAINT `ProductImage_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ProductImage" ADD CONSTRAINT "ProductImage_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ProductColor` ADD CONSTRAINT `ProductColor_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ProductColor" ADD CONSTRAINT "ProductColor_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ProductVariant` ADD CONSTRAINT `ProductVariant_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ProductVariant" ADD CONSTRAINT "ProductVariant_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ProductVariant` ADD CONSTRAINT `ProductVariant_colorId_fkey` FOREIGN KEY (`colorId`) REFERENCES `ProductColor`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ProductVariant" ADD CONSTRAINT "ProductVariant_colorId_fkey" FOREIGN KEY ("colorId") REFERENCES "ProductColor"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `OrderItem` ADD CONSTRAINT `OrderItem_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `OrderItem` ADD CONSTRAINT `OrderItem_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
