@@ -1697,14 +1697,14 @@ img {
   }
 
   .wh-product-image {
-    aspect-ratio: 0.82;
-    background: linear-gradient(180deg, rgb(var(--stonewash)), rgb(var(--paper)));
+    aspect-ratio: 0.74;
+    background: rgb(var(--stonewash));
   }
 
   .wh-product-image img {
-    object-fit: contain;
-    object-position: center center;
-    padding: 0.35rem;
+    object-fit: cover;
+    object-position: center top;
+    padding: 0;
   }
 
   .wh-product-card:hover .wh-product-image img {
