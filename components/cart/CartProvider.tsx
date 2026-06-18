@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { normalizeImageUrl } from "@/lib/image-url";
 import type { ProductView, Locale } from "@/lib/types";
 
 export type CartItem = {
@@ -22,7 +23,12 @@ export type CartItem = {
 
 type CartContextValue = {
   items: CartItem[];
-  addItem: (product: ProductView, colorId: string, size: string, quantity: number) => void;
+  addItem: (
+    product: ProductView,
+    colorId: string,
+    size: string,
+    quantity: number,
+  ) => void;
   updateQuantity: (key: string, quantity: number) => void;
   removeItem: (key: string) => void;
   clear: () => void;
@@ -37,7 +43,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = window.localStorage.getItem("white-house-order");
-    if (stored) setItems(JSON.parse(stored));
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) setItems(parsed);
+    } catch {
+      window.localStorage.removeItem("white-house-order");
+    }
   }, []);
 
   useEffect(() => {
@@ -48,19 +60,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return {
       items,
       addItem(product, colorId, size, quantity) {
-        const color = product.colors.find((candidate) => candidate.id === colorId);
+        if (product.status !== "visible") return;
+        const color = product.colors.find(
+          (candidate) => candidate.id === colorId,
+        );
         if (!color) return;
         const key = `${product.id}:${colorId}:${size}`;
-        const imageUrl =
+        const imageUrl = normalizeImageUrl(
           color.imageUrl ||
-          product.images.find((candidate) => candidate.colorId === colorId)?.url ||
-          product.images.find((candidate) => candidate.isMain)?.url ||
-          product.images[0]?.url;
+            product.images.find((candidate) => candidate.colorId === colorId)
+              ?.url ||
+            product.images.find((candidate) => candidate.isMain)?.url ||
+            product.images[0]?.url,
+        );
         setItems((current) => {
           const existing = current.find((item) => item.key === key);
           if (existing) {
             return current.map((item) =>
-              item.key === key ? { ...item, quantity: Math.min(20, item.quantity + quantity) } : item
+              item.key === key
+                ? { ...item, quantity: Math.min(20, item.quantity + quantity) }
+                : item,
             );
           }
           return [
@@ -79,14 +98,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               quantity,
               unitPrice: product.price,
               currency: product.currency,
-              imageUrl
-            }
+              imageUrl,
+            },
           ];
         });
       },
       updateQuantity(key, quantity) {
         setItems((current) =>
-          current.map((item) => (item.key === key ? { ...item, quantity: Math.max(1, Math.min(20, quantity)) } : item))
+          current.map((item) =>
+            item.key === key
+              ? { ...item, quantity: Math.max(1, Math.min(20, quantity)) }
+              : item,
+          ),
         );
       },
       removeItem(key) {
@@ -96,7 +119,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setItems([]);
       },
       count: items.reduce((sum, item) => sum + item.quantity, 0),
-      total: items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+      total: items.reduce(
+        (sum, item) => sum + item.quantity * item.unitPrice,
+        0,
+      ),
     };
   }, [items]);
 

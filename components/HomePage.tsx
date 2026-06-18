@@ -3,29 +3,52 @@ import Link from "next/link";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 import { ProductCard } from "./ProductCard";
+import { normalizeImageUrl } from "@/lib/image-url";
 import { dictionary, localPath, textByLocale } from "@/lib/i18n";
-import type { CategoryView, Locale, ProductView, StoreSettingsView } from "@/lib/types";
+import type {
+  CategoryView,
+  Locale,
+  ProductView,
+  StoreSettingsView,
+} from "@/lib/types";
 
-const heroImage = "/brand/hero-model.png";
-const shellX = "px-4 sm:px-6 md:px-10 lg:px-12 xl:px-16";
-const contentMax = "mx-auto max-w-[118rem]";
+const heroImage = "/brand/hero-image.jpg";
 
 const heroCopy = {
   ar: {
-    lines: ["جهز", "إطلالتك", "بالقطع", "الصحيحة"],
-    eyebrow: "أزياء رجالية مختارة"
+    eyebrow: "أزياء رجالية مختارة",
+    dark: ["جهز", "إطلالتك"],
+    light: ["بالقطع", "الصحيحة"],
+    body: "قطع يومية بهوية هادئة، صور واضحة، ألوان دقيقة، وطلب سريع عبر واتساب.",
   },
   en: {
-    lines: ["Get", "yourself", "into the", "right gear"],
-    eyebrow: "Curated menswear"
-  }
+    eyebrow: "Curated menswear",
+    dark: ["Get", "yourself"],
+    light: ["into the"],
+    body: "Everyday pieces with a quiet identity, precise colors, and a fast WhatsApp order flow.",
+  },
 } as const;
+
+function productsByCategory(
+  categories: CategoryView[],
+  products: ProductView[],
+) {
+  return categories
+    .map((category) => ({
+      category,
+      products: products
+        .filter((product) => product.category?.slug === category.slug)
+        .sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured))
+        .slice(0, 4),
+    }))
+    .filter((group) => group.products.length > 0);
+}
 
 export function HomePage({
   locale,
   categories,
   products,
-  settings
+  settings,
 }: {
   locale: Locale;
   categories: CategoryView[];
@@ -35,85 +58,149 @@ export function HomePage({
   const t = dictionary[locale];
   const h = heroCopy[locale];
   const featuredCategories = categories.slice(0, 5);
-  const isRtl = locale === "ar";
-  const heroTextOrder = isRtl ? "lg:order-2" : "lg:order-1";
-  const heroMediaOrder = isRtl ? "lg:order-1" : "lg:order-2";
-  const swatchSide = isRtl ? "lg:right-auto lg:left-[-4rem]" : "lg:left-auto lg:right-[-4rem]";
-  const cardTextSide = isRtl ? "right-5 md:right-auto md:left-4" : "left-5 md:left-auto md:right-4";
-  const cardRotation = isRtl ? "md:-rotate-90" : "md:rotate-90";
-  const arrow = isRtl ? "\u2190" : "\u2192";
+  const groupedProducts = productsByCategory(categories, products);
+  const whatsappNumber = settings.whatsappNumber.replace(/[^\d]/g, "");
+  const whatsappHref =
+    settings.whatsappUrl ||
+    (whatsappNumber ? `https://wa.me/${whatsappNumber}` : "");
 
   return (
     <div className="page-shell" dir={t.dir} lang={locale}>
       <Header locale={locale} />
       <main>
-        <section className="relative isolate overflow-hidden bg-stonewash">
-          <div className={`grid min-h-[calc(100svh-4.85rem)] lg:grid-cols-[1.2fr_0.8fr] ${contentMax}`}>
+        <section id="hero" className="relative overflow-hidden bg-bone/70">
+          <div
+            dir="ltr"
+            className="mx-auto grid max-w-[1720px] grid-cols-1 lg:h-[calc(100vh-86px)] lg:min-h-[620px] lg:max-h-[760px] lg:grid-cols-2"
+          >
+            {/* Text Side */}
             <div
-              className={`relative z-10 flex min-w-0 flex-col justify-center py-16 md:py-20 lg:py-24 ${shellX} ${heroTextOrder}`}
+              dir={locale === "ar" ? "rtl" : "ltr"}
+              className={`relative z-10 flex h-full flex-col justify-center px-6 py-16 sm:px-10 lg:px-[7vw] ${
+                locale === "ar"
+                  ? "order-1 text-right lg:order-2 lg:items-end"
+                  : "order-1 text-left lg:order-1 lg:items-start"
+              }`}
             >
-              <p className="mb-8 text-[0.74rem] font-black uppercase tracking-[0.22em] text-caramel">
-                {h.eyebrow}
-              </p>
-              <h1 className="display-tight max-w-[10.8ch] text-[clamp(3.9rem,9vw,8.7rem)] font-black text-ink">
-                <span className="block">{h.lines[0]}</span>
-                <span className="block">{h.lines[1]}</span>
-                <span className="block text-paper drop-shadow-[0_12px_34px_rgb(178_153_95/0.28)]">{h.lines[2]}</span>
-                <span className="block text-paper drop-shadow-[0_12px_34px_rgb(178_153_95/0.28)]">{h.lines[3]}</span>
-              </h1>
+              {/* Glow فقط للإنجليزي أو للجميع بدون تأثير رمادي مزعج */}
+              <div
+                className={`pointer-events-none absolute top-1/2 h-[42%] w-[min(38rem,86vw)] -translate-y-1/2 rounded-full bg-brass/45 opacity-95 blur-[70px] ${
+                  locale === "ar"
+                    ? "right-3 sm:right-8 lg:right-[6vw]"
+                    : "left-3 sm:left-8 lg:left-[6vw]"
+                }`}
+                aria-hidden="true"
+              />
+
+              <div className="relative max-w-[760px] bg-transparent before:hidden after:hidden">
+                <p className="eyebrow mb-6 text-caramel">{h.eyebrow}</p>
+
+                <h1 className="font-black uppercase leading-[0.9] tracking-[-0.075em] text-ink">
+                  {h.dark.map((line) => (
+                    <span
+                      className="block text-[clamp(4.2rem,7vw,8.9rem)]"
+                      key={line}
+                    >
+                      {line}
+                    </span>
+                  ))}
+
+                  {h.light.map((line) => (
+                    <span
+                      className="block text-[clamp(4.2rem,7vw,8.9rem)] text-paper drop-shadow-[0_18px_45px_rgba(23,22,60,0.35)]"
+                      key={line}
+                    >
+                      {line}
+                    </span>
+                  ))}
+                </h1>
+
+                <p className="mt-7 max-w-2xl text-base leading-8 text-ink/75 sm:text-lg">
+                  {h.body}
+                </p>
+
+                <div
+                  className={`mt-7 flex flex-wrap gap-3 ${
+                    locale === "ar" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <Link
+                    className="btn btn-primary"
+                    href={localPath(locale, "/products")}
+                  >
+                    {t.heroCta}
+                  </Link>
+
+                  <Link
+                    className="btn btn-ghost"
+                    href={localPath(locale, "/#categories")}
+                  >
+                    {t.secondaryCta}
+                  </Link>
+                </div>
+              </div>
             </div>
 
-            <div className={`relative min-h-[28rem] bg-[rgb(204_202_197)] md:min-h-[38rem] lg:min-h-0 ${heroMediaOrder}`}>
+            {/* Image Side */}
+            <div
+              className={`relative min-h-[420px] overflow-hidden bg-transparent sm:min-h-[560px] lg:h-full ${
+                locale === "ar" ? "order-2 lg:order-1" : "order-2 lg:order-2"
+              }`}
+            >
               <Image
                 src={heroImage}
                 alt="White House menswear hero"
                 fill
                 priority
-                sizes="(min-width: 1024px) 42vw, 100vw"
-                className="object-contain object-bottom"
+                sizes="(min-width:1024px) 50vw, 100vw"
+                className="object-cover object-center"
               />
-              <div className={`absolute bottom-8 hidden h-32 w-32 rounded-md bg-caramel/50 md:block ${swatchSide}`} />
             </div>
           </div>
         </section>
 
-        <section id="categories" className={`${shellX} py-14 md:py-16 lg:py-20`}>
-          <div className={contentMax}>
-            <div className="mb-8 flex flex-col gap-4 md:mb-10 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-[0.74rem] font-black uppercase tracking-[0.22em] text-caramel">{t.filters}</p>
-                <h2 className="display-tight mt-2 text-[clamp(3.1rem,7.8vw,6.4rem)] font-black text-ink">
+        <section id="categories" className="section-pad wh-categories-section">
+          <div className="container-wide grid gap-8 text-start">
+            <div className="wh-section-heading md:flex md:items-end md:justify-between md:gap-8">
+              <div className="grid gap-3">
+                <p className="eyebrow">{t.filters}</p>
+                <h2 className="wh-section-title wh-categories-title text-ink">
                   {t.categories}
                 </h2>
               </div>
-              <Link className="arrow-link w-fit text-ink" href={localPath(locale, "/products")}>
+              <Link
+                className="arrow-link w-fit text-ink"
+                href={localPath(locale, "/products")}
+              >
                 {t.viewAll}
               </Link>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-              {featuredCategories.map((category) => (
+            <div className="wh-category-grid">
+              {featuredCategories.map((category, index) => (
                 <Link
                   key={category.id}
-                  href={localPath(locale, `/products?category=${category.slug}`)}
-                  className="group relative h-[30rem] cursor-pointer overflow-hidden rounded-md bg-ink text-bone shadow-[0_18px_44px_rgb(23_22_60/0.12)] outline-none transition duration-300 hover:shadow-[0_26px_64px_rgb(23_22_60/0.18)] focus-visible:ring-4 focus-visible:ring-brass/50 sm:h-[34rem] lg:h-[42rem]"
+                  href={localPath(
+                    locale,
+                    `/products?category=${category.slug}`,
+                  )}
+                  className="wh-category-card group"
                 >
                   <Image
-                    src={category.imageUrl || "/brand/shirt-stone.png"}
+                    src={
+                      normalizeImageUrl(category.imageUrl) ||
+                      "/brand/category-image-1.jpg"
+                    }
                     alt={textByLocale(locale, category.nameAr, category.nameEn)}
                     fill
-                    sizes="(min-width: 1024px) 20vw, (min-width: 640px) 50vw, 100vw"
-                    className="object-cover grayscale transition duration-500 ease-[var(--ease-out)] group-hover:grayscale-0"
+                    sizes="(min-width:1280px) 20vw, (min-width:640px) 50vw, 94vw"
+                    className="object-cover"
                   />
-                  <div className="absolute inset-0 bg-ink/50 transition duration-300 group-hover:bg-ink/20" />
-                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink/75 to-transparent" />
-                  <div className={`absolute bottom-5 ${cardTextSide}`}>
-                    <p className="mb-4 text-xs font-black uppercase tracking-[0.18em] text-bone/70 md:hidden">
-                      {t.viewCategory} <span aria-hidden="true">{arrow}</span>
+                  <div className="wh-category-label text-paper">
+                    <p className="mb-4 text-[0.62rem] font-black uppercase tracking-[0.2em] text-paper/80">
+                      {t.viewCategory} · 0{index + 1}
                     </p>
-                    <h3
-                      className={`origin-bottom text-5xl font-black leading-none text-bone/90 md:whitespace-nowrap md:text-6xl ${cardRotation}`}
-                    >
+                    <h3 className="wh-category-name">
                       {textByLocale(locale, category.nameAr, category.nameEn)}
                     </h3>
                   </div>
@@ -123,29 +210,88 @@ export function HomePage({
           </div>
         </section>
 
-        <section className={`${shellX} py-14 md:py-16 lg:py-20`}>
-          <div className={contentMax}>
-            <div className="grid gap-5 md:grid-cols-[1fr_0.9fr] md:items-end">
-              <h2 className="display-tight text-[clamp(3.1rem,7.8vw,6.4rem)] font-black">
-                <span className="block text-ink">{t.newest}</span>
-                <span className="block text-caramel">{t.newestLight}</span>
+        <section className="section-pad wh-home-products-section pt-0">
+          <div className="container-shell grid gap-9 text-start">
+            <div className="wh-section-heading md:grid md:grid-cols-[0.9fr_1fr] md:items-end md:gap-8">
+              <h2 className="wh-section-title wh-edit-title text-ink">
+                <span className="block">{t.newest}</span>
+                <span className="accent block">{t.newestLight}</span>
               </h2>
-              <p className="max-w-xl text-base font-semibold leading-8 text-muted md:text-lg">{t.categoryHint}</p>
+              <p className="max-w-2xl leading-8 text-muted md:text-lg">
+                {t.categoryHint}
+              </p>
             </div>
-            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {products.map((product) => (
-                <div key={product.id} className="grid gap-3">
-                  <ProductCard product={product} locale={locale} />
-                  {product.category && (
+
+            <div className="grid gap-11">
+              {groupedProducts.map(({ category, products: groupProducts }) => (
+                <div key={category.id} className="grid gap-4">
+                  <div className="flex items-end justify-between gap-4 border-b border-ink/10 pb-3">
+                    <h3 className="text-xs font-black uppercase tracking-[0.16em] text-caramel">
+                      {textByLocale(locale, category.nameAr, category.nameEn)}
+                    </h3>
                     <Link
-                      href={localPath(locale, `/products?category=${product.category.slug}`)}
-                      className="arrow-link w-fit text-ink/75"
+                      className="arrow-link text-[0.7rem]"
+                      href={localPath(
+                        locale,
+                        `/products?category=${category.slug}`,
+                      )}
                     >
-                      {textByLocale(locale, product.category.nameAr, product.category.nameEn)}
+                      {locale === "ar" ? "عرض المزيد" : "View more"}
                     </Link>
-                  )}
+                  </div>
+                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {groupProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        locale={locale}
+                      />
+                    ))}
+                  </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="wh-about-section bg-ink text-paper" id="about">
+          <div className="container-shell grid items-center gap-8 md:grid-cols-[1fr_0.8fr]">
+            <div className="text-start">
+              <p className="eyebrow">{t.about}</p>
+              <h2 className="mt-3 max-w-xl text-4xl font-black leading-[0.95] tracking-[-0.06em] md:text-6xl">
+                {textByLocale(
+                  locale,
+                  settings.storeNameAr,
+                  settings.storeNameEn,
+                )}
+              </h2>
+              <p className="mt-5 max-w-2xl leading-8 text-paper/70">
+                {textByLocale(locale, settings.aboutAr, settings.aboutEn)}
+              </p>
+            </div>
+            <div className="wh-about-contact-card">
+              <p className="text-lg font-black leading-7 text-ink">
+                {textByLocale(locale, settings.locationAr, settings.locationEn)}
+              </p>
+              {/* {settings.supportPhone && (
+                <a
+                  className="text-ink/70 transition hover:text-ink"
+                  href={`tel:${settings.supportPhone}`}
+                >
+                  {settings.supportPhone}
+                </a>
+              )}
+              <a
+                className="text-ink/70 transition hover:text-ink"
+                href={`mailto:${settings.supportEmail}`}
+              >
+                {settings.supportEmail}
+              </a> */}
+              {whatsappHref && (
+                <a className="btn btn-primary w-full" href={whatsappHref}>
+                  WhatsApp
+                </a>
+              )}
             </div>
           </div>
         </section>

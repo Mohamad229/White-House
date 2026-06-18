@@ -1,9 +1,15 @@
 import type { Locale } from "./types";
 
-export function formatMoney(amount: number, currency = "SYP", locale: Locale = "ar") {
-  return new Intl.NumberFormat(locale === "ar" ? "ar-SY" : "en-US", {
-    maximumFractionDigits: 0
-  }).format(amount) + ` ${currency}`;
+export function formatMoney(
+  amount: number,
+  currency = "SYP",
+  locale: Locale = "ar",
+) {
+  return (
+    new Intl.NumberFormat(locale === "ar" ? "ar-SY" : "en-US", {
+      maximumFractionDigits: 0,
+    }).format(amount) + ` ${currency}`
+  );
 }
 
 export function slugify(value: string) {

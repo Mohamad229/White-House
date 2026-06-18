@@ -5,9 +5,14 @@ import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
 
 const COOKIE_NAME = "white_house_admin";
+const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
 function secret() {
-  return process.env.AUTH_SECRET || "white-house-dev-secret-change-me";
+  if (process.env.AUTH_SECRET) return process.env.AUTH_SECRET;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("AUTH_SECRET is required in production.");
+  }
+  return "white-house-dev-secret-change-me";
 }
 
 function sign(payload: string) {
@@ -15,21 +20,29 @@ function sign(payload: string) {
 }
 
 export async function createAdminSession(username: string) {
-  const payload = Buffer.from(JSON.stringify({ username, createdAt: Date.now() })).toString("base64url");
+  const payload = Buffer.from(
+    JSON.stringify({ username, createdAt: Date.now() }),
+  ).toString("base64url");
   const value = `${payload}.${sign(payload)}`;
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, value, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7,
-    path: "/"
+    maxAge: SESSION_MAX_AGE_SECONDS,
+    path: "/",
   });
 }
 
 export async function clearAdminSession() {
   const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAME);
+  cookieStore.set(COOKIE_NAME, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 0,
+    path: "/",
+  });
 }
 
 export async function getAdminSession() {
@@ -37,9 +50,27 @@ export async function getAdminSession() {
   const value = cookieStore.get(COOKIE_NAME)?.value;
   if (!value) return null;
   const [payload, signature] = value.split(".");
-  if (!payload || !signature || sign(payload) !== signature) return null;
+  if (!payload || !signature) return null;
+  const expected = sign(payload);
+  const validSignature =
+    expected.length === signature.length &&
+    crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+  if (!validSignature) return null;
   try {
-    return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { username: string; createdAt: number };
+    const session = JSON.parse(
+      Buffer.from(payload, "base64url").toString("utf8"),
+    ) as {
+      username: string;
+      createdAt: number;
+    };
+    if (
+      !session.username ||
+      !session.createdAt ||
+      Date.now() - session.createdAt > SESSION_MAX_AGE_SECONDS * 1000
+    ) {
+      return null;
+    }
+    return session;
   } catch {
     return null;
   }
@@ -52,13 +83,14 @@ export async function requireAdmin() {
 }
 
 export async function validateAdminLogin(username: string, password: string) {
-  const fallbackUser = process.env.ADMIN_USERNAME || "admin";
-  const fallbackPassword = process.env.ADMIN_PASSWORD || "admin12345";
+  const envUser = process.env.ADMIN_USERNAME;
+  const envPassword = process.env.ADMIN_PASSWORD;
+  const hasEnvCredentials = Boolean(envUser && envPassword);
   try {
     const user = await prisma.adminUser.findUnique({ where: { username } });
     if (user && verifyPassword(password, user.passwordHash)) return true;
   } catch {
-    return username === fallbackUser && password === fallbackPassword;
+    return hasEnvCredentials && username === envUser && password === envPassword;
   }
-  return username === fallbackUser && password === fallbackPassword;
+  return hasEnvCredentials && username === envUser && password === envPassword;
 }

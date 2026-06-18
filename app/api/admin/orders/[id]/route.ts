@@ -2,7 +2,10 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   await requireAdmin();
   const { id } = await params;
   const form = await request.formData();

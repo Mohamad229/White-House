@@ -1,114 +1,159 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { BrandMark } from "./BrandMark";
 import { dictionary, localPath } from "@/lib/i18n";
 import type { Locale } from "@/lib/types";
+import { BrandMark } from "./BrandMark";
+
+function switchLocaleHref(locale: Locale, pathname: string) {
+  if (locale === "ar") {
+    if (!pathname || pathname === "/") return "/en";
+    return `/en${pathname}`;
+  }
+  if (pathname === "/en") return "/";
+  return pathname.replace(/^\/en/, "") || "/";
+}
 
 export function Header({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const t = dictionary[locale];
-  const switchHref = locale === "ar" ? "/en" : "/";
+  const switchHref = switchLocaleHref(locale, pathname);
   const links = [
     { href: localPath(locale, "/"), label: t.home },
     { href: localPath(locale, "/#categories"), label: t.categories },
     { href: localPath(locale, "/products"), label: t.products },
-    { href: localPath(locale, "/#about"), label: t.about }
+    { href: localPath(locale, "/#about"), label: t.about },
   ];
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-ink/10 bg-paper/95 shadow-[0_12px_40px_rgb(23_22_60/0.09)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[118rem] items-center justify-between gap-3 px-4 py-3 md:px-8 lg:px-12 lg:py-4">
+      <header className="wh-header" dir={t.dir}>
+        <div className="container-shell flex h-16 items-center justify-between gap-3 md:h-[4.85rem]">
           <Link
             href={localPath(locale, "/")}
+            className="flex min-w-0 items-center gap-3"
             aria-label="White House home"
-            className="min-w-0 shrink-0"
             onClick={() => setOpen(false)}
           >
             <BrandMark />
           </Link>
 
-          <nav className="hidden items-center gap-7 text-[0.78rem] font-black uppercase text-ink/85 md:flex lg:gap-9">
+          <nav className="hidden items-center gap-7 text-[0.72rem] font-black uppercase tracking-[0.08em] text-ink/70 md:flex">
             {links.map((link) => (
-              <Link key={link.href} className="transition hover:text-caramel" href={link.href}>
+              <Link
+                key={link.href}
+                href={link.href}
+                className="transition hover:text-ink"
+              >
                 {link.label}
               </Link>
             ))}
           </nav>
 
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-2">
             <Link
-              className="tap-target hidden items-center justify-center rounded-full border border-ink/10 bg-bone px-4 py-2 text-[0.72rem] font-black uppercase text-ink shadow-sm transition hover:border-caramel md:inline-flex"
+              className="hidden rounded-full border border-ink/10 bg-paper px-4 py-3 text-[0.68rem] font-black uppercase text-ink transition hover:border-ink md:inline-flex"
               href={switchHref}
               onClick={() => setOpen(false)}
             >
               {t.language}
             </Link>
             <button
-              className="tap-target grid h-11 w-11 place-items-center rounded-full border border-ink/10 bg-ink text-bone shadow-sm transition hover:bg-caramel md:hidden"
+              className="wh-icon-button md:hidden"
               type="button"
               aria-expanded={open}
-              aria-controls="mobile-public-navigation"
+              aria-controls="public-menu"
               aria-label={open ? t.close : t.menu}
-              onClick={() => setOpen((value) => !value)}
+              onClick={() => setOpen(true)}
             >
-              <span className="relative h-4 w-5" aria-hidden="true">
-                <span
-                  className={`absolute left-0 top-0 h-0.5 w-5 rounded-full bg-current transition duration-300 ease-[var(--ease-out)] ${
-                    open ? "translate-y-[7px] rotate-45" : ""
-                  }`}
-                />
-                <span
-                  className={`absolute left-0 top-[7px] h-0.5 w-5 rounded-full bg-current transition duration-200 ease-[var(--ease-out)] ${
-                    open ? "opacity-0" : "opacity-100"
-                  }`}
-                />
-                <span
-                  className={`absolute left-0 top-[14px] h-0.5 w-5 rounded-full bg-current transition duration-300 ease-[var(--ease-out)] ${
-                    open ? "-translate-y-[7px] -rotate-45" : ""
-                  }`}
-                />
+              <span className="grid gap-1" aria-hidden="true">
+                <span className="block h-0.5 w-5 rounded-full bg-current" />
+                <span className="block h-0.5 w-5 rounded-full bg-current" />
+                <span className="block h-0.5 w-5 rounded-full bg-current" />
               </span>
             </button>
           </div>
         </div>
+      </header>
 
-        <nav
-          id="mobile-public-navigation"
-          className={`grid overflow-hidden border-t border-ink/10 bg-paper/95 shadow-[0_24px_60px_rgb(23_22_60/0.12)] transition-all duration-300 ease-[var(--ease-out)] md:hidden ${
-            open ? "max-h-[24rem] opacity-100" : "max-h-0 opacity-0"
-          }`}
+      {open && (
+        <div
+          id="public-menu"
+          className="wh-menu-panel fixed inset-0 z-[60] overflow-y-auto p-4 md:p-6"
+          dir={t.dir}
         >
-          <div className="mx-auto grid w-full max-w-[38rem] gap-2 px-4 pb-4 pt-2">
-            {links.map((link, index) => (
-              <Link
-                key={link.href}
-                className={`rounded-xl bg-bone px-4 py-4 text-sm font-black uppercase transition duration-300 hover:bg-stonewash ${
-                  open ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
-                }`}
-                href={link.href}
-                style={{ transitionDelay: open ? `${index * 35}ms` : "0ms" }}
-                onClick={() => setOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <div className="flex items-center justify-between gap-4">
             <Link
-              className={`rounded-xl border border-ink/10 bg-paper px-4 py-4 text-sm font-black uppercase transition duration-300 hover:border-caramel ${
-                open ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
-              }`}
-              href={switchHref}
-              style={{ transitionDelay: open ? `${links.length * 35}ms` : "0ms" }}
+              href={localPath(locale, "/")}
+              className="flex items-center gap-3"
               onClick={() => setOpen(false)}
             >
-              {t.language}
+              <BrandMark />
             </Link>
+            <button
+              className="wh-icon-button"
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label={t.close}
+            >
+              <span className="relative block h-5 w-5" aria-hidden="true">
+                <span className="absolute left-0 top-1/2 block h-0.5 w-5 -translate-y-1/2 rotate-45 rounded-full bg-current" />
+                <span className="absolute left-0 top-1/2 block h-0.5 w-5 -translate-y-1/2 -rotate-45 rounded-full bg-current" />
+              </span>
+            </button>
           </div>
-        </nav>
-      </header>
-      <div className="h-[4.25rem] md:h-[4.85rem]" aria-hidden="true" />
+
+          <div className="container-shell grid gap-8 py-10 md:grid-cols-[1fr_0.7fr] md:items-stretch md:py-14">
+            <nav className="grid gap-3">
+              {links.map((link, index) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  className="wh-menu-link flex items-center justify-between gap-4"
+                >
+                  <span>{link.label}</span>
+                  <span className="text-xs text-caramel">0{index + 1}.</span>
+                </Link>
+              ))}
+              <Link
+                href={switchHref}
+                onClick={() => setOpen(false)}
+                className="rounded-2xl border border-ink/10 bg-paper px-5 py-4 text-sm font-black uppercase transition hover:bg-bone"
+              >
+                {t.language}
+              </Link>
+            </nav>
+
+            <div className="relative hidden min-h-[34rem] overflow-hidden rounded-[28px] bg-ink md:block">
+              <Image
+                src="/brand/category-image-3.jpg"
+                alt="White House menu visual"
+                fill
+                className="object-cover opacity-70"
+                sizes="40vw"
+              />
+              <div className="absolute inset-0 bg-ink/45" />
+              <div className="absolute inset-x-8 bottom-8 text-paper">
+                <span className="mb-6 inline-flex rounded-lg bg-paper/92 p-2">
+                  <BrandMark compact />
+                </span>
+                <p className="max-w-sm text-4xl font-semibold leading-tight">
+                  {locale === "ar"
+                    ? "تصفح القطع والأقسام بهوية وايت هاوس."
+                    : "Explore White House pieces and categories."}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="h-16 md:h-[4.85rem]" aria-hidden="true" />
     </>
   );
 }

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { dictionary, textByLocale } from "@/lib/i18n";
 import { formatMoney } from "@/lib/format";
+import { normalizeImageUrl } from "@/lib/image-url";
 import type { Locale, ProductView } from "@/lib/types";
 import { useCart } from "./cart/CartProvider";
 import { ProductCard } from "./ProductCard";
@@ -11,7 +12,7 @@ import { ProductCard } from "./ProductCard";
 export function ProductDetailsClient({
   product,
   locale,
-  relatedProducts = []
+  relatedProducts = [],
 }: {
   product: ProductView;
   locale: Locale;
@@ -19,89 +20,160 @@ export function ProductDetailsClient({
 }) {
   const availableColors = product.colors.filter((color) => color.isAvailable);
   const [colorId, setColorId] = useState(availableColors[0]?.id ?? "");
-  const selectedColor = availableColors.find((color) => color.id === colorId) ?? availableColors[0];
-  const sizes = selectedColor?.variants.filter((variant) => variant.isAvailable) ?? [];
+  const selectedColor =
+    availableColors.find((color) => color.id === colorId) ?? availableColors[0];
+  const sizes =
+    selectedColor?.variants.filter((variant) => variant.isAvailable) ?? [];
   const [size, setSize] = useState(sizes[0]?.size ?? "");
   const [quantity, setQuantity] = useState(1);
   const cart = useCart();
   const t = dictionary[locale];
+  const isOutOfStock = product.status === "outOfStock";
+  const unavailableLabel = locale === "ar" ? "غير متوفر حاليا" : "Out of stock";
 
-  const image = useMemo(() => {
-    return (
-      selectedColor?.imageUrl ||
-      product.images.find((candidate) => candidate.colorId === selectedColor?.id)?.url ||
+  const gallery = useMemo(() => {
+    const colorImages = product.images.filter(
+      (candidate) => candidate.colorId === selectedColor?.id,
+    );
+    return colorImages.length ? colorImages : product.images;
+  }, [product.images, selectedColor?.id]);
+
+  const fallbackImage = normalizeImageUrl(
+    selectedColor?.imageUrl ||
+      product.images.find((candidate) => candidate.colorId === selectedColor?.id)
+        ?.url ||
       product.images.find((candidate) => candidate.isMain)?.url ||
       product.images[0]?.url ||
-      "/brand/shirt-stone.png"
-    );
-  }, [product, selectedColor]);
+      "/brand/category-image-1.jpg",
+  );
+
+  const [activeImage, setActiveImage] = useState(fallbackImage);
 
   function selectColor(nextColorId: string) {
     const nextColor = availableColors.find((color) => color.id === nextColorId);
     setColorId(nextColorId);
-    setSize(nextColor?.variants.find((variant) => variant.isAvailable)?.size ?? "");
+    setSize(
+      nextColor?.variants.find((variant) => variant.isAvailable)?.size ?? "",
+    );
+    const colorImage =
+      normalizeImageUrl(
+        nextColor?.imageUrl ||
+          product.images.find((candidate) => candidate.colorId === nextColorId)
+            ?.url ||
+          product.images.find((candidate) => candidate.isMain)?.url ||
+          product.images[0]?.url,
+      );
+    if (colorImage) setActiveImage(colorImage);
   }
 
   return (
     <>
-    <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
-      <section>
-        <div className="relative aspect-[0.86] overflow-hidden rounded-2xl bg-stonewash md:aspect-[1.05] lg:aspect-[0.86]">
-          <Image src={image} alt={textByLocale(locale, product.nameAr, product.nameEn)} fill priority className="object-cover" />
-          {product.images.length > 1 && (
-            <div className="absolute bottom-4 left-4 right-4 flex justify-center gap-3">
-              {product.images.map((candidate) => (
-                <button
-                  key={candidate.id}
-                  className="relative h-20 w-16 overflow-hidden rounded-xl bg-paper shadow-md ring-1 ring-bone/60"
-                  onClick={() => candidate.colorId && selectColor(candidate.colorId)}
-                  aria-label={textByLocale(locale, candidate.altAr, candidate.altEn)}
-                >
-                  <Image src={candidate.url} alt={textByLocale(locale, candidate.altAr, candidate.altEn)} fill className="object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
+      <section className="container-shell grid gap-10 py-8 lg:grid-cols-[0.95fr_1.05fr] lg:py-14">
+        <div className="grid gap-3">
+          <div className="wh-product-gallery">
+            <Image
+              src={activeImage || fallbackImage}
+              alt={textByLocale(locale, product.nameAr, product.nameEn)}
+              fill
+              priority
+              className="object-cover"
+              sizes="(min-width:1024px) 48vw, 94vw"
+            />
+            {gallery.length > 1 && (
+              <div className="absolute inset-x-0 bottom-0 flex justify-center gap-2 bg-gradient-to-t from-ink/45 to-transparent p-4">
+                {gallery.map((candidate) => (
+                  <button
+                    key={candidate.id}
+                    type="button"
+                    className={`relative aspect-square w-14 overflow-hidden rounded-xl border bg-paper transition ${
+                      (activeImage || fallbackImage) ===
+                      normalizeImageUrl(candidate.url)
+                        ? "border-paper"
+                        : "border-paper/30 opacity-80"
+                    }`}
+                    onClick={() => setActiveImage(normalizeImageUrl(candidate.url))}
+                    aria-label={textByLocale(
+                      locale,
+                      candidate.altAr,
+                      candidate.altEn,
+                    )}
+                  >
+                    <Image
+                      src={normalizeImageUrl(candidate.url)}
+                      alt={textByLocale(
+                        locale,
+                        candidate.altAr,
+                        candidate.altEn,
+                      )}
+                      fill
+                      className="object-cover"
+                      sizes="56px"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </section>
 
-      <section className="lg:pt-8">
-        <p className="text-[0.75rem] font-black uppercase text-caramel">
-          {product.category ? textByLocale(locale, product.category.nameAr, product.category.nameEn) : t.products}
-        </p>
-        <h1 className="display-tight mt-4 max-w-[12ch] text-[clamp(3rem,8vw,7rem)]">
-          {textByLocale(locale, product.nameAr, product.nameEn)}
-        </h1>
-        <p className="mt-4 text-4xl font-semibold text-caramel">{formatMoney(product.price, product.currency, locale)}</p>
-        <p className="mt-7 max-w-xl text-lg leading-8 text-muted">
-          {textByLocale(locale, product.descriptionAr, product.descriptionEn)}
-        </p>
+        <div className="flex flex-col justify-center gap-7 text-start">
+          <div className="grid gap-4">
+            <p className="eyebrow">
+              {product.category
+                ? textByLocale(
+                    locale,
+                    product.category.nameAr,
+                    product.category.nameEn,
+                  )
+                : t.products}
+            </p>
+            <h1 className="wh-product-detail-title text-ink">
+              {textByLocale(locale, product.nameAr, product.nameEn)}
+            </h1>
+            <p className="text-2xl font-black text-caramel md:text-3xl">
+              {formatMoney(product.price, product.currency, locale)}
+            </p>
+            <p className="max-w-2xl leading-8 text-muted">
+              {textByLocale(
+                locale,
+                product.descriptionAr,
+                product.descriptionEn,
+              )}
+            </p>
+          </div>
 
-        <div className="mt-9 space-y-7">
-          <div>
-            <h2 className="mb-3 text-[0.75rem] font-black uppercase text-caramel">{t.color}</h2>
+          <div className="grid gap-3">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-caramel">
+              {t.color}
+            </p>
             <div className="flex flex-wrap gap-2">
               {availableColors.map((color) => (
                 <button
                   key={color.id}
-                  className={`tap-target flex items-center gap-2 rounded-full border px-4 py-3 font-black transition ${
-                    colorId === color.id ? "border-caramel bg-caramel text-bone" : "border-ink/10 bg-bone hover:bg-paper"
-                  }`}
+                  type="button"
+                  className={`wh-chip ${color.id === selectedColor?.id ? "wh-chip-active" : ""}`}
                   onClick={() => selectColor(color.id)}
                 >
-                  <span className="h-4 w-4 rounded-full border border-ink/20" style={{ backgroundColor: color.hex }} />
+                  <span
+                    className="h-3 w-3 rounded-full border border-ink/15"
+                    style={{ backgroundColor: color.hex }}
+                  />
                   {textByLocale(locale, color.nameAr, color.nameEn)}
                 </button>
               ))}
             </div>
           </div>
-          <div>
-            <h2 className="mb-3 text-[0.75rem] font-black uppercase text-caramel">{t.size}</h2>
+
+          <div className="grid gap-3">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-caramel">
+              {t.size}
+            </p>
             <div className="flex flex-wrap gap-2">
               {sizes.map((variant) => (
                 <button
                   key={variant.id}
-                  className={`tap-target rounded-full px-5 py-3 font-black transition ${size === variant.size ? "bg-ink text-bone" : "bg-bone hover:bg-paper"}`}
+                  type="button"
+                  className={`wh-chip min-w-11 ${variant.size === size ? "wh-chip-active" : ""}`}
                   onClick={() => setSize(variant.size)}
                 >
                   {variant.size}
@@ -109,44 +181,72 @@ export function ProductDetailsClient({
               ))}
             </div>
           </div>
-          <label className="block max-w-36">
-            <span className="mb-3 block text-[0.75rem] font-black uppercase text-caramel">{t.quantity}</span>
-            <input
-              className="field"
-              type="number"
-              min={1}
-              max={20}
-              value={quantity}
-              onChange={(event) => setQuantity(Math.max(1, Number(event.target.value) || 1))}
-            />
-          </label>
-          <button
-            className="tap-target w-full rounded-full bg-ink px-7 py-4 font-black uppercase text-bone transition hover:bg-caramel md:w-auto"
-            disabled={!selectedColor || !size}
-            onClick={() => selectedColor && cart.addItem(product, selectedColor.id, size, quantity)}
-          >
-            {t.addToOrder}
-          </button>
-        </div>
 
-        <div className="mt-12 border-t border-ink/15 pt-8">
-          <h2 className="text-2xl font-black">{t.aboutProduct}</h2>
-          <p className="mt-4 max-w-2xl leading-8 text-muted">{textByLocale(locale, product.descriptionAr, product.descriptionEn)}</p>
+          <div className="grid gap-3">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-caramel">
+              {t.quantity}
+            </p>
+            <div className="flex w-fit items-center overflow-hidden rounded-2xl border border-ink/10 bg-paper">
+              <button
+                className="grid h-12 w-12 place-items-center transition hover:bg-ink hover:text-paper"
+                type="button"
+                onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+                aria-label="Decrease quantity"
+              >
+                −
+              </button>
+              <span className="min-w-14 text-center text-sm font-black">
+                {quantity}
+              </span>
+              <button
+                className="grid h-12 w-12 place-items-center transition hover:bg-ink hover:text-paper"
+                type="button"
+                onClick={() => setQuantity((value) => Math.min(20, value + 1))}
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <button
+            className="btn btn-primary w-full"
+            type="button"
+            disabled={!selectedColor || !size || isOutOfStock}
+            onClick={() =>
+              selectedColor &&
+              !isOutOfStock &&
+              cart.addItem(product, selectedColor.id, size, quantity)
+            }
+          >
+            {isOutOfStock ? unavailableLabel : t.addToOrder}
+          </button>
+
+          <div className="border-t border-ink/15 pt-8">
+            <h2 className="text-2xl font-black">{t.aboutProduct}</h2>
+            <p className="mt-4 max-w-2xl leading-8 text-muted">
+              {textByLocale(
+                locale,
+                product.descriptionAr,
+                product.descriptionEn,
+              )}
+            </p>
+          </div>
         </div>
       </section>
-    </div>
-    {relatedProducts.length > 0 && (
-      <section className="mt-16 border-t border-ink/15 pt-10">
-        <div className="mb-7 flex items-end justify-between gap-4">
-          <h2 className="display-tight text-[clamp(2.6rem,7vw,5.5rem)]">{t.relatedProducts}</h2>
-        </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {relatedProducts.map((related) => (
-            <ProductCard key={related.id} product={related} locale={locale} />
-          ))}
-        </div>
-      </section>
-    )}
+
+      {relatedProducts.length > 0 && (
+        <section className="container-shell wh-related-section border-t border-ink/15">
+          <h2 className="wh-section-title wh-related-title text-ink">
+            {t.relatedProducts}
+          </h2>
+          <div className="wh-related-grid">
+            {relatedProducts.map((related) => (
+              <ProductCard key={related.id} product={related} locale={locale} />
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }

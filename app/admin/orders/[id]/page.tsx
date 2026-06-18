@@ -1,14 +1,27 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { AdminError } from "@/components/admin/AdminError";
 import { AdminHeader, AdminShell } from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminOrder } from "@/lib/data";
 import { formatMoney } from "@/lib/format";
+import { normalizeImageUrl } from "@/lib/image-url";
+import { whatsappHrefForPhone } from "@/lib/phone";
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
   const { id } = await params;
-  const order = await getAdminOrder(id);
+  let order;
+  try {
+    order = await getAdminOrder(id);
+  } catch {
+    return (
+      <AdminShell>
+        <AdminHeader title="Ø§Ù„Ø·Ù„Ø¨Ø§Øª" />
+        <AdminError />
+      </AdminShell>
+    );
+  }
   if (!order) notFound();
 
   return (
@@ -28,7 +41,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           <div className="mt-5 flex flex-col gap-2 sm:flex-row">
             <a
               className="tap-target rounded-full bg-ink px-5 py-3 text-center font-black text-bone"
-              href={`https://wa.me/${String(order.customerPhone).replace(/[^\d]/g, "")}`}
+              href={whatsappHrefForPhone(order.customerPhone)}
               target="_blank"
               rel="noreferrer"
             >
@@ -49,11 +62,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         <section className="premium-card p-5">
           <h2 className="text-2xl font-black">المنتجات</h2>
           <div className="mt-5 grid gap-3">
-            {order.items.map((item) => (
+            {order.items.map((item: any) => (
               <div key={item.id} className="grid gap-4 rounded-2xl bg-bone p-4 sm:grid-cols-[5.5rem_1fr]">
                 <div className="relative aspect-square overflow-hidden rounded-xl bg-paper">
-                  {item.imageUrl ? (
-                    <Image src={item.imageUrl} alt={item.selectedProductName} fill className="object-cover" />
+                  {normalizeImageUrl(item.imageUrl) ? (
+                    <Image src={normalizeImageUrl(item.imageUrl)} alt={item.selectedProductName} fill className="object-cover" />
                   ) : (
                     <div className="grid h-full place-items-center text-xs text-muted">بدون صورة</div>
                   )}

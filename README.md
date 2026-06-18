@@ -32,4 +32,5 @@ Arabic storefront is available at `/`, English at `/en`, and admin at `/admin`.
 - Orders are saved to MySQL before the WhatsApp click-to-chat URL is returned.
 - Public pages never display internal product codes.
 - Admin image uploads are stored in `public/uploads`.
-- If the database is not configured yet, public read pages render starter seed data, but order/admin mutations require MySQL.
+- Public read pages render starter seed data only when `USE_SEED_FALLBACK=true` or `DATABASE_URL` is not configured. Admin pages and all mutations require MySQL and show an error when the database is unavailable.
+- Local admin uploads are stored in `public/uploads`. For serverless production deployments, use persistent object storage such as S3 or Cloudinary.

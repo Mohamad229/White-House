@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { AdminError } from "@/components/admin/AdminError";
 import { AdminHeader, AdminShell } from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminOrders } from "@/lib/data";
 import { formatMoney } from "@/lib/format";
+import { whatsappHrefForPhone } from "@/lib/phone";
 
 const statusLabels: Record<string, string> = {
   new: "جديد",
@@ -13,7 +15,17 @@ const statusLabels: Record<string, string> = {
 
 export default async function Page() {
   await requireAdmin();
-  const orders = await getAdminOrders();
+  let orders;
+  try {
+    orders = await getAdminOrders();
+  } catch {
+    return (
+      <AdminShell>
+        <AdminHeader title="Ø§Ù„Ø·Ù„Ø¨Ø§Øª" />
+        <AdminError />
+      </AdminShell>
+    );
+  }
   return (
     <AdminShell>
       <AdminHeader title="الطلبات" />
@@ -29,7 +41,7 @@ export default async function Page() {
               <Info label="التاريخ" value={new Date(order.createdAt).toLocaleDateString("ar-SY")} />
             </div>
             <div className="flex flex-col gap-2 sm:flex-row lg:justify-end">
-              <form className="flex gap-2" action={`/api/admin/orders/${order.id}`} method="post">
+              {/* <form className="flex gap-2" action={`/api/admin/orders/${order.id}`} method="post">
                 <select className="admin-field min-w-36" name="status" defaultValue={order.status}>
                   <option value="new">جديد</option>
                   <option value="contacted">تم التواصل</option>
@@ -37,13 +49,13 @@ export default async function Page() {
                   <option value="cancelled">ملغي</option>
                 </select>
                 <button className="tap-target rounded-full bg-caramel px-4 py-2 font-black text-bone">تحديث</button>
-              </form>
-              <Link className="tap-target rounded-full bg-ink px-5 py-3 text-center font-black text-bone" href={`/admin/orders/${order.id}`}>
+              </form> */}
+              <Link className="tap-target rounded-full bg-caramel px-5 py-3 text-center font-black text-bone" href={`/admin/orders/${order.id}`}>
                 التفاصيل
               </Link>
               <a
                 className="tap-target rounded-full border border-ink/15 px-5 py-3 text-center font-black"
-                href={`https://wa.me/${String(order.customerPhone).replace(/[^\d]/g, "")}`}
+                href={whatsappHrefForPhone(order.customerPhone)}
                 target="_blank"
                 rel="noreferrer"
               >

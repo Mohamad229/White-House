@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminError } from "@/components/admin/AdminError";
 import { AdminHeader, AdminShell } from "@/components/admin/AdminShell";
 import { LoginForm } from "@/components/admin/LoginForm";
 import { getAdminSession } from "@/lib/auth";
@@ -14,11 +15,21 @@ export default async function Page() {
       </div>
     );
   }
-  const summary = await getAdminSummary();
+  let summary;
+  try {
+    summary = await getAdminSummary();
+  } catch {
+    return (
+      <AdminShell>
+        <AdminHeader title="Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…" />
+        <AdminError />
+      </AdminShell>
+    );
+  }
   return (
     <AdminShell>
       <AdminHeader title="لوحة التحكم" />
-      <section className="premium-card overflow-hidden bg-ink p-5 text-bone sm:p-7">
+      <section className="premium-card overflow-hidden bg-ink p-5 text-ink sm:p-7">
         <p className="text-sm font-black uppercase tracking-[0.18em] text-brass">White House Store</p>
         <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">
           نظرة سريعة على الطلبات والمنتجات التي يحتاجها فريق المتجر اليوم.

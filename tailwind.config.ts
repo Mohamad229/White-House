@@ -1,7 +1,11 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
+  content: [
+    "./app/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./lib/**/*.{ts,tsx}",
+  ],
   theme: {
     extend: {
       colors: {
@@ -11,18 +15,18 @@ const config: Config = {
         muted: "rgb(128 129 133)",
         bone: "rgb(250 247 240)",
         caramel: "rgb(178 153 95)",
-        brass: "rgb(229 197 130)"
+        brass: "rgb(229 197 130)",
       },
       fontFamily: {
         sans: ["var(--font-ui)", "Tahoma", "Segoe UI", "sans-serif"],
-        display: ["var(--font-display)", "Arial Black", "Tahoma", "sans-serif"]
+        display: ["var(--font-display)", "Arial Black", "Tahoma", "sans-serif"],
       },
       boxShadow: {
-        bar: "0 -18px 60px oklch(0.16 0.006 78 / 0.16)"
-      }
-    }
+        bar: "0 -18px 60px oklch(0.16 0.006 78 / 0.16)",
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };
 
 export default config;

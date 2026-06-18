@@ -44,24 +44,24 @@ model Category {
 }
 
 model Product {
-  id                 String          @id @default(cuid())
+  id                 String           @id @default(cuid())
   categoryId         String
-  slug               String          @unique
+  slug               String           @unique
   internalCode       String
   nameAr             String
   nameEn             String
-  descriptionAr      String          @db.Text
-  descriptionEn      String          @db.Text
+  descriptionAr      String           @db.Text
+  descriptionEn      String           @db.Text
   shortDescriptionAr String
   shortDescriptionEn String
   price              Int
-  currency           String          @default("SYP")
-  status             ProductStatus   @default(visible)
-  isFeatured         Boolean         @default(false)
+  currency           String           @default("SYP")
+  status             ProductStatus    @default(visible)
+  isFeatured         Boolean          @default(false)
   mainImageId        String?
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
-  category           Category        @relation(fields: [categoryId], references: [id])
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  category           Category         @relation(fields: [categoryId], references: [id])
   images             ProductImage[]
   colors             ProductColor[]
   variants           ProductVariant[]

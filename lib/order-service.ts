@@ -3,6 +3,7 @@ import { prisma } from "./prisma";
 import { getStoreSettings } from "./data";
 import { buildWhatsAppUrl } from "./whatsapp";
 import { textByLocale } from "./i18n";
+import { isValidWhatsAppPhone, normalizeSyrianPhoneNumber } from "./phone";
 
 const checkoutSchema = z.object({
   locale: z.enum(["ar", "en"]),
@@ -17,10 +18,10 @@ const checkoutSchema = z.object({
         productId: z.string().min(1),
         colorId: z.string().min(1),
         size: z.string().min(1),
-        quantity: z.number().int().min(1).max(20)
-      })
+        quantity: z.number().int().min(1).max(20),
+      }),
     )
-    .min(1)
+    .min(1),
 });
 
 function orderCode() {
@@ -30,44 +31,65 @@ function orderCode() {
 
 export async function createOrder(input: unknown) {
   const parsed = checkoutSchema.parse(input);
+  const customerPhone = normalizeSyrianPhoneNumber(parsed.customerPhone);
+  if (!isValidWhatsAppPhone(customerPhone)) {
+    throw new Error("Enter a valid WhatsApp phone number.");
+  }
   const ids = parsed.items.map((item) => item.productId);
   const products = await prisma.product.findMany({
     where: { id: { in: ids }, status: "visible" },
     include: {
       images: true,
       colors: { include: { variants: true } },
-      category: true
-    }
+      category: true,
+    },
   });
 
   const items = parsed.items.map((cartItem) => {
-    const product = products.find((candidate) => candidate.id === cartItem.productId);
+    const product = products.find(
+      (candidate: any) => candidate.id === cartItem.productId,
+    );
     if (!product) throw new Error("Product is not available.");
-    const color = product.colors.find((candidate) => candidate.id === cartItem.colorId && candidate.isAvailable);
+    const color = product.colors.find(
+      (candidate: any) =>
+        candidate.id === cartItem.colorId && candidate.isAvailable,
+    );
     if (!color) throw new Error("Selected color is not available.");
     const variant = color.variants.find(
-      (candidate) => candidate.size === cartItem.size && candidate.isAvailable
+      (candidate: any) =>
+        candidate.size === cartItem.size && candidate.isAvailable,
     );
     if (!variant) throw new Error("Selected size is not available.");
     const lineTotal = product.price * cartItem.quantity;
-    const image = color.imageUrl || product.images.find((candidate) => candidate.isMain)?.url || product.images[0]?.url;
+    const image =
+      color.imageUrl ||
+      product.images.find((candidate: any) => candidate.isMain)?.url ||
+      product.images[0]?.url;
     return {
       productId: product.id,
       productSlug: product.slug,
       productInternalCode: product.internalCode,
       productNameAr: product.nameAr,
       productNameEn: product.nameEn,
-      selectedProductName: textByLocale(parsed.locale, product.nameAr, product.nameEn),
+      selectedProductName: textByLocale(
+        parsed.locale,
+        product.nameAr,
+        product.nameEn,
+      ),
       colorAr: color.nameAr,
       colorEn: color.nameEn,
-      selectedColorName: textByLocale(parsed.locale, color.nameAr, color.nameEn),
+      selectedColorName: textByLocale(
+        parsed.locale,
+        color.nameAr,
+        color.nameEn,
+      ),
       colorHex: color.hex,
       size: cartItem.size,
       quantity: cartItem.quantity,
       unitPrice: product.price,
       lineTotal,
       currency: product.currency,
-      imageUrl: image
+      imageUrl: image,
     };
   });
 
@@ -78,7 +100,7 @@ export async function createOrder(input: unknown) {
       code: orderCode(),
       locale: parsed.locale,
       customerName: parsed.customerName,
-      customerPhone: parsed.customerPhone,
+      customerPhone,
       cityArea: parsed.cityArea,
       detailedAddress: parsed.detailedAddress,
       notes: parsed.notes,
@@ -86,16 +108,16 @@ export async function createOrder(input: unknown) {
       total,
       currency: settings.defaultCurrency,
       whatsappOpenedAt: new Date(),
-      items: { create: items }
+      items: { create: items },
     },
-    include: { items: true }
+    include: { items: true },
   });
 
   return {
     order,
     whatsappUrl: buildWhatsAppUrl(settings, parsed.locale, {
       ...order,
-      items: order.items
-    })
+      items: order.items,
+    }),
   };
 }

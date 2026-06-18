@@ -6,9 +6,21 @@ export async function PUT(request: Request) {
   await requireAdmin();
   const body = await request.json();
   const existing = await prisma.storeSettings.findFirst();
-  const required = ["storeNameAr", "storeNameEn", "whatsappNumber", "supportEmail", "aboutAr", "aboutEn", "locationAr", "locationEn"];
+  const required = [
+    "storeNameAr",
+    "storeNameEn",
+    "whatsappNumber",
+    "supportEmail",
+    "aboutAr",
+    "aboutEn",
+    "locationAr",
+    "locationEn",
+  ];
   if (required.some((key) => !String(body[key] || "").trim())) {
-    return NextResponse.json({ error: "Missing required settings fields." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing required settings fields." },
+      { status: 400 },
+    );
   }
   const data = {
     storeNameAr: String(body.storeNameAr || "وايت هاوس"),
@@ -25,7 +37,7 @@ export async function PUT(request: Request) {
     locationAr: String(body.locationAr || ""),
     locationEn: String(body.locationEn || ""),
     whatsappTemplateAr: String(body.whatsappTemplateAr || ""),
-    whatsappTemplateEn: String(body.whatsappTemplateEn || "")
+    whatsappTemplateEn: String(body.whatsappTemplateEn || ""),
   };
   const settings = existing
     ? await prisma.storeSettings.update({ where: { id: existing.id }, data })

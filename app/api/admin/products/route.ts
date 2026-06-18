@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/format";
+import { normalizeImageUrl } from "@/lib/image-url";
+
+const productStatuses = ["visible", "hidden", "outOfStock"] as const;
 
 type ColorInput = {
   id?: string;
@@ -37,10 +40,16 @@ function arrayInput<T>(value: unknown, jsonValue: unknown, fallback: T[]): T[] {
 }
 
 async function uniqueProductSlug(rawSlug: string, fallbackName: string) {
-  const base = slugify(rawSlug || fallbackName || "product") || `product-${Date.now()}`;
+  const base =
+    slugify(rawSlug || fallbackName || "product") || `product-${Date.now()}`;
   let candidate = base;
   let index = 2;
-  while (await prisma.product.findUnique({ where: { slug: candidate }, select: { id: true } })) {
+  while (
+    await prisma.product.findUnique({
+      where: { slug: candidate },
+      select: { id: true },
+    })
+  ) {
     candidate = `${base}-${index}`;
     index += 1;
   }
@@ -52,12 +61,21 @@ async function productData(body: any) {
   const nameEn = String(body.nameEn || "").trim();
   const internalCode = String(body.internalCode || "").trim();
   const categoryId = String(body.categoryId || "").trim();
-  if (!nameAr || !nameEn || !internalCode || !categoryId) {
+  const price = Number(body.price || 0);
+  if (!nameAr || !nameEn || !internalCode || !categoryId || price <= 0) {
     throw new Error("Missing required product fields");
   }
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+    select: { id: true },
+  });
+  if (!category) throw new Error("Category does not exist");
   return {
     categoryId,
-    slug: await uniqueProductSlug(String(body.slug || ""), String(nameEn || nameAr || "")),
+    slug: await uniqueProductSlug(
+      String(body.slug || ""),
+      String(nameEn || nameAr || ""),
+    ),
     internalCode,
     nameAr,
     nameEn,
@@ -65,10 +83,12 @@ async function productData(body: any) {
     descriptionEn: String(body.descriptionEn || ""),
     shortDescriptionAr: String(body.shortDescriptionAr || ""),
     shortDescriptionEn: String(body.shortDescriptionEn || ""),
-    price: Number(body.price || 0),
+    price,
     currency: "SYP",
-    status: ["visible", "hidden"].includes(String(body.status)) ? body.status as any : "visible",
-    isFeatured: Boolean(body.isFeatured)
+    status: productStatuses.includes(body.status)
+      ? (body.status as any)
+      : "visible",
+    isFeatured: Boolean(body.isFeatured),
   };
 }
 
@@ -77,23 +97,36 @@ export async function POST(request: Request) {
   const body = await request.json();
   const images = arrayInput<ImageInput>(body.images, body.imagesJson, []);
   const colors = arrayInput<ColorInput>(body.colors, body.colorsJson, []);
-  if (colors.length === 0) return NextResponse.json({ error: "Add at least one color." }, { status: 400 });
+  if (colors.length === 0)
+    return NextResponse.json(
+      { error: "Add at least one color." },
+      { status: 400 },
+    );
   if (colors.some((color) => !String(color.imageUrl || "").trim())) {
-    return NextResponse.json({ error: "Upload an image for every color." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Upload an image for every color." },
+      { status: 400 },
+    );
   }
   if (colors.some((color) => !color.sizes?.length)) {
-    return NextResponse.json({ error: "Select at least one size for every color." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Select at least one size for every color." },
+      { status: 400 },
+    );
   }
   let baseProductData;
   try {
     baseProductData = await productData(body);
   } catch {
-    return NextResponse.json({ error: "Missing required product fields." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing required product fields." },
+      { status: 400 },
+    );
   }
   const product = await prisma.product.create({
     data: {
-      ...baseProductData
-    }
+      ...baseProductData,
+    },
   });
 
   const colorIdMap = new Map<string, string>();
@@ -104,10 +137,10 @@ export async function POST(request: Request) {
         nameAr: String(color.nameAr || "").trim(),
         nameEn: String(color.nameEn || "").trim(),
         hex: String(color.hex || "#e5c582"),
-        imageUrl: color.imageUrl || null,
+        imageUrl: normalizeImageUrl(color.imageUrl) || null,
         isAvailable: color.isAvailable !== false,
-        sortOrder: Number(color.sortOrder || 0)
-      }
+        sortOrder: Number(color.sortOrder || 0),
+      },
     });
     if (color.id) colorIdMap.set(color.id, createdColor.id);
     colorIdMap.set(color.nameEn, createdColor.id);
@@ -118,8 +151,8 @@ export async function POST(request: Request) {
           productId: product.id,
           colorId: createdColor.id,
           size,
-          isAvailable: true
-        }))
+          isAvailable: true,
+        })),
       });
     }
   }
@@ -128,13 +161,13 @@ export async function POST(request: Request) {
     await prisma.productImage.createMany({
       data: images.map((image) => ({
         productId: product.id,
-        url: image.url,
+        url: normalizeImageUrl(image.url),
         altAr: image.altAr || body.nameAr,
         altEn: image.altEn || body.nameEn,
         isMain: Boolean(image.isMain),
         colorId: image.colorId ? (colorIdMap.get(image.colorId) ?? null) : null,
-        sortOrder: Number(image.sortOrder || 0)
-      }))
+        sortOrder: Number(image.sortOrder || 0),
+      })),
     });
   }
   return NextResponse.json(product);

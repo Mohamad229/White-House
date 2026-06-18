@@ -1,17 +1,27 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { dictionary } from "@/lib/i18n";
 import { formatMoney } from "@/lib/format";
+import { normalizeImageUrl } from "@/lib/image-url";
 import type { Locale } from "@/lib/types";
 import { itemColor, itemName, useCart } from "./CartProvider";
 
+function currentLocale(pathname: string): Locale {
+  return pathname === "/en" || pathname.startsWith("/en/") ? "en" : "ar";
+}
+
 export function OrderBar() {
   const cart = useCart();
+  const pathname = usePathname();
+  const detectedLocale = currentLocale(pathname);
   const [open, setOpen] = useState(false);
-  const [locale, setLocale] = useState<Locale>("ar");
+  const [locale, setLocale] = useState<Locale>(detectedLocale);
   const [status, setStatus] = useState<string>("");
+  const panelSideClass =
+    locale === "en" ? "wh-checkout-panel-left" : "wh-checkout-panel-right";
 
   const t = dictionary[locale];
   const currency = cart.items[0]?.currency ?? "SYP";
@@ -21,9 +31,9 @@ export function OrderBar() {
         productId: item.productId,
         colorId: item.colorId,
         size: item.size,
-        quantity: item.quantity
+        quantity: item.quantity,
       })),
-    [cart.items]
+    [cart.items],
   );
 
   if (cart.count === 0) return null;
@@ -39,13 +49,13 @@ export function OrderBar() {
       cityArea: String(form.get("cityArea") || ""),
       detailedAddress: String(form.get("detailedAddress") || ""),
       notes: String(form.get("notes") || ""),
-      items: payloadItems
+      items: payloadItems,
     };
 
     const response = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     });
     const data = await response.json();
     if (!response.ok) {
@@ -59,102 +69,210 @@ export function OrderBar() {
 
   return (
     <>
-      <div className="fixed inset-x-3 bottom-3 z-40 mx-auto max-w-3xl rounded-2xl bg-ink p-3 text-bone shadow-bar md:bottom-5">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase text-bone/55">{t.orderBar}</p>
-            <p className="text-lg font-black">
-              {cart.count} · {formatMoney(cart.total, currency, locale)}
-            </p>
+      <div className="wh-order-fab">
+        <div className="container-shell wh-order-fab-inner">
+          <div
+            className="flex items-center gap-3 text-start"
+            dir={dictionary[detectedLocale].dir}
+          >
+            <span
+              className="grid h-11 w-11 place-items-center rounded-full bg-ink text-paper"
+              aria-hidden="true"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 7h15l-1.5 9h-12z" />
+                <path d="M6 7 5 3H2" />
+                <circle cx="9" cy="20" r="1" />
+                <circle cx="18" cy="20" r="1" />
+              </svg>
+            </span>
+            <div>
+              <p className="text-sm font-black">
+                {cart.count} · {t.orderBar}
+              </p>
+              <p className="text-xs text-muted">
+                {t.total}: {formatMoney(cart.total, currency, detectedLocale)}
+              </p>
+            </div>
           </div>
-          <button className="tap-target rounded-full bg-bone px-5 py-3 text-sm font-black uppercase text-ink" onClick={() => setOpen(true)}>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setLocale(detectedLocale);
+              setOpen(true);
+            }}
+            type="button"
+          >
             {t.review}
           </button>
         </div>
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-ink/55 p-3 backdrop-blur-sm">
-          <div className="mx-auto my-6 max-w-4xl rounded-2xl bg-paper shadow-[0_24px_80px_rgb(23_22_60/0.28)]" dir={dictionary[locale].dir}>
-            <div className="flex items-center justify-between gap-3 border-b border-ink/10 p-5">
-              <h2 className="text-2xl font-black">{t.checkout}</h2>
+        <div
+          className="fixed inset-0 z-[70] bg-ink/55 backdrop-blur-sm"
+          dir={dictionary[locale].dir}
+        >
+          <button
+            className="absolute inset-0 h-full w-full cursor-default"
+            type="button"
+            aria-label={t.close}
+            onClick={() => setOpen(false)}
+          />
+          <aside
+            className={`wh-checkout-panel ${panelSideClass} relative flex flex-col overflow-y-auto p-5 shadow-soft md:h-full md:p-6`}
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-ink/10 pb-4">
+              <h2 className="text-3xl font-black tracking-[-0.05em]">
+                {t.checkout}
+              </h2>
               <div className="flex items-center gap-2">
-                <button className="tap-target rounded-full border border-ink/15 px-3 py-2 text-xs font-black" onClick={() => setLocale(locale === "ar" ? "en" : "ar")}>
+                {/* <button
+                  className="rounded-full border border-ink/15 px-3 py-2 text-xs font-black"
+                  type="button"
+                  onClick={() => setLocale(locale === "ar" ? "en" : "ar")}
+                >
                   {dictionary[locale].language}
-                </button>
-                <button className="tap-target rounded-full border border-ink/15 px-3 py-2 text-xs font-black" onClick={() => setOpen(false)}>
-                  ×
+                </button> */}
+                <button
+                  className="wh-icon-button"
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  aria-label={t.close}
+                >
+                  <span className="relative block h-5 w-5" aria-hidden="true">
+                    <span className="absolute left-0 top-1/2 block h-0.5 w-5 -translate-y-1/2 rotate-45 rounded-full bg-current" />
+                    <span className="absolute left-0 top-1/2 block h-0.5 w-5 -translate-y-1/2 -rotate-45 rounded-full bg-current" />
+                  </span>
                 </button>
               </div>
             </div>
-            <div className="grid gap-6 p-4 sm:p-5 lg:grid-cols-[1fr_0.95fr]">
-              <div className="space-y-3">
+
+            <div className="flex-1 overflow-y-auto py-5">
+              <div className="grid gap-4">
                 {cart.items.map((item) => (
-                  <div key={item.key} className="grid grid-cols-[5.5rem_1fr] gap-4 rounded-2xl bg-bone p-3">
-                    <div className="relative aspect-square overflow-hidden rounded-xl bg-stonewash">
-                      {item.imageUrl && <Image src={item.imageUrl} alt={itemName(item, locale)} fill className="object-cover" />}
+                  <div
+                    key={item.key}
+                    className="grid grid-cols-[86px_1fr] gap-3 rounded-[22px] bg-brass/10 p-3 text-start"
+                  >
+                    <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-stonewash">
+                      {normalizeImageUrl(item.imageUrl) && (
+                        <Image
+                          src={normalizeImageUrl(item.imageUrl)}
+                          alt={itemName(item, locale)}
+                          fill
+                          className="object-cover"
+                          sizes="86px"
+                        />
+                      )}
                     </div>
-                    <div className="min-w-0">
+                    <div className="grid gap-2">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <h3 className="font-black">{itemName(item, locale)}</h3>
-                          <p className="text-sm text-muted">
+                          <p className="font-black leading-snug">
+                            {itemName(item, locale)}
+                          </p>
+                          <p className="text-xs text-muted">
                             {itemColor(item, locale)} · {item.size}
                           </p>
                         </div>
-                        <button className="text-sm font-bold text-caramel" onClick={() => cart.removeItem(item.key)}>
+                        <button
+                          className="text-xs font-black uppercase tracking-[0.12em] text-caramel"
+                          type="button"
+                          onClick={() => cart.removeItem(item.key)}
+                        >
                           {t.remove}
                         </button>
                       </div>
-                      <div className="mt-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center justify-between gap-2">
                         <input
-                          className="field max-w-24"
+                          className="field h-12 w-20 rounded-2xl text-center"
                           type="number"
                           min={1}
                           max={20}
                           value={item.quantity}
-                          onChange={(event) => cart.updateQuantity(item.key, Number(event.target.value))}
                           aria-label={t.quantity}
+                          onChange={(event) =>
+                            cart.updateQuantity(
+                              item.key,
+                              Number(event.target.value),
+                            )
+                          }
                         />
-                        <strong>{formatMoney(item.unitPrice * item.quantity, item.currency, locale)}</strong>
+                        <span className="text-sm font-black">
+                          {formatMoney(
+                            item.unitPrice * item.quantity,
+                            item.currency,
+                            locale,
+                          )}
+                        </span>
                       </div>
                     </div>
                   </div>
                 ))}
-                <div className="flex justify-between border-t border-ink/15 pt-4 text-xl font-black">
-                  <span>{t.total}</span>
-                  <span>{formatMoney(cart.total, currency, locale)}</span>
-                </div>
               </div>
-              <form className="space-y-3" onSubmit={submitOrder}>
+
+              <div className="mt-5 flex items-center justify-between border-t border-ink/15 pt-5 text-xl font-black">
+                <span>{t.total}</span>
+                <span>{formatMoney(cart.total, currency, locale)}</span>
+              </div>
+
+              <form className="mt-6 grid gap-3" onSubmit={submitOrder}>
                 <Field label={t.name} name="customerName" required />
-                <Field label={t.phone} name="customerPhone" required />
+                <Field
+                  label={t.phone}
+                  name="customerPhone"
+                  type="tel"
+                  inputMode="tel"
+                  dir="ltr"
+                  required
+                />
                 <Field label={t.cityArea} name="cityArea" required />
-                <label className="block">
-                  <span className="mb-1 block text-sm font-black">{t.address}</span>
-                  <textarea className="field min-h-24" name="detailedAddress" required />
+                <label className="field-label">
+                  {t.address}
+                  <textarea
+                    className="field min-h-24"
+                    name="detailedAddress"
+                    required
+                  />
                 </label>
-                <label className="block">
-                  <span className="mb-1 block text-sm font-black">{t.notes}</span>
+                <label className="field-label">
+                  {t.notes}
                   <textarea className="field min-h-20" name="notes" />
                 </label>
-                {status && <p className="rounded-xl bg-red-100 p-3 text-sm font-bold text-red-800">{status}</p>}
-                <button className="tap-target w-full rounded-full bg-ink px-5 py-4 font-black uppercase text-bone" type="submit">
+                {status && (
+                  <p className="rounded-xl bg-red-100 p-3 text-sm font-bold text-red-800">
+                    {status}
+                  </p>
+                )}
+                <button className="btn btn-primary w-full" type="submit">
                   {t.submitOrder}
                 </button>
               </form>
             </div>
-          </div>
+          </aside>
         </div>
       )}
     </>
   );
 }
 
-function Field({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+function Field({
+  label,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
   return (
-    <label className="block">
-      <span className="mb-1 block text-sm font-black">{label}</span>
+    <label className="field-label">
+      {label}
       <input className="field" {...props} />
     </label>
   );
