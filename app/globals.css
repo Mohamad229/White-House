@@ -747,7 +747,7 @@ img {
 
 @media (max-width: 767px) {
   .container-shell {
-    width: min(100% - 20px, 1180px);
+    width: min(calc(100% - 20px), 1180px);
   }
 
   .wh-hero {
@@ -1601,7 +1601,9 @@ img {
 
 @media (max-width: 767px) {
   .wh-products-main.container-shell {
-    width: min(100% - 24px, 390px);
+    width: min(calc(100% - 24px), 390px);
+    max-width: 390px;
+    overflow: clip;
   }
 
   .wh-products-main {
@@ -1609,19 +1611,37 @@ img {
     padding-block: 1.7rem 3rem;
   }
 
+  .wh-products-heading {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .wh-products-heading .eyebrow {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+
   .wh-products-heading .wh-section-title {
-    font-size: clamp(2.7rem, 13vw, 3.65rem);
-    letter-spacing: -0.045em;
-    line-height: 0.9;
+    max-width: 100%;
+    font-size: clamp(2.35rem, 11.5vw, 3rem);
+    letter-spacing: -0.025em;
+    line-height: 0.96;
+    overflow-wrap: anywhere;
+    text-align: center;
   }
 
   .wh-products-heading p {
-    max-width: 22rem;
-    font-size: 0.93rem;
-    line-height: 1.8;
+    max-width: min(100%, 21rem);
+    font-size: 0.9rem;
+    line-height: 1.75;
+    text-align: center;
   }
 
   .wh-products-filter-frame {
+    width: 100%;
     max-width: 100%;
   }
 
@@ -1633,16 +1653,23 @@ img {
   }
 
   .wh-products-filter-card {
+    width: 100%;
+    max-width: 100%;
     border-radius: 24px;
+    overflow: hidden;
   }
 
   .wh-products-category-tabs {
-    margin-inline: -0.25rem;
-    padding-inline: 0.25rem;
-    scroll-padding-inline: 0.25rem;
+    width: 100%;
+    max-width: 100%;
+    margin-inline: 0;
+    padding-inline: 0;
+    scroll-padding-inline: 0;
+    overscroll-behavior-inline: contain;
   }
 
   .wh-products-category-tabs > button {
+    max-width: calc(100vw - 4.75rem);
     white-space: nowrap;
   }
 
@@ -1655,6 +1682,14 @@ img {
   .wh-product-card {
     width: 100%;
     max-width: 100%;
+  }
+
+  .wh-product-image {
+    aspect-ratio: 0.78;
+  }
+
+  .wh-product-image img {
+    object-position: center top;
   }
 
   .wh-filter-tabs {
